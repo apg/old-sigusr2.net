@@ -1,0 +1,15 @@
+[defaults]
+var_title = SIGUSR2
+var_sub_title = User defined Signal 2
+var_author = Andrew Gwozdziewycz
+var_author_email = web@apgwoz.com
+
+site_base_url = http://sigusr2.net/
+site_theme = sigusr2
+
+site_page_subdirectory = page
+site_entry_subdirectory = 
+
+site_target_server = www.sigusr2.net
+site_target_username = apgwoz
+site_target_remote_directory = /home/apgwoz/sigusr2.net/

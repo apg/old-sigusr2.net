@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block site_title %}
+ > {{ month }}, {{ year }}
+{% endblock %}
+
+{% block site_content %}
+<h2>{{ month }}, {{ year }}</h2>
+
+{% for entry in objects %}
+   <p>{{ entry.date.strftime('%d %b %Y') }}&mdash;<a href="{{ entry.permaurl }}">{{ entry.title|escape }}</a></p>
+{% endfor %}
+{% endblock %}

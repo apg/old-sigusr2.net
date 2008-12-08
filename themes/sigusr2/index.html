@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block site_content %}
+<div class="list-post">
+{% for entry in objects[0:1] %}
+<h2>{{ entry.title|escape }}</h2>
+<h4>{{ entry.date.strftime('%B %d, %Y') }} <span class="permalink"><a href="{{ entry.permaurl|escape }}" title="permalink">#</a></span></h4>
+{{ entry.content }}
+</div>
+{% endfor %}
+
+<h3 class="other">Other Recent Posts</h3>
+{% for entry in objects[1:] %}
+   <p>{{ entry.date.strftime('%d %b %Y') }}&mdash;<a href="{{ entry.permaurl }}">{{ entry.title|escape }}</a></p>
+{% endfor %}   
+{% endblock %}

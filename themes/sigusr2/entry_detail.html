@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block site_title %}
+ > {{ title|escape }}
+{% endblock %}
+
+{% block site_content %}
+<h2>{{ title|escape }}</h2>
+<h4>{{ date.strftime('%B %d, %Y') }} <span class="permalink"><a href="{{ permaurl|escape }}" title="permalink">#</a></span></h4>
+{{ content }}
+{% endblock %}
