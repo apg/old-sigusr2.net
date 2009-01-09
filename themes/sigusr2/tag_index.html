@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block site_title %}
+ > Tagged {{ tag }}
+{% endblock %}
+
+{% block site_content %}
+<h2>Entries Tagged {{ tag }}</h2>
+
+{% for entry in objects %}
+   <p>{{ entry.date.strftime('%d %b %Y') }}&mdash;<a href="{{ entry.permaurl }}">{{ entry.title|escape }}</a></p>
+{% endfor %}
+{% endblock %}

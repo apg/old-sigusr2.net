@@ -28,117 +28,113 @@
         
 <div class="list-post">
 
-<h2>Python Type Constructors a la OCaml</h2>
-<h4>September 30, 2008 <span class="permalink"><a href="/2008/Sep/30/python-type-constructors-like-ocaml.html" title="permalink">#</a></span></h4>
+<h2>Anagrams Predicate</h2>
+<h4>January 08, 2009 <span class="permalink"><a href="/2009/Jan/08/anagrams-predicate.html" title="permalink">#</a></span></h4>
+<p><span class="preamble">Recently, I spent some time thinking about a simple problem. How do you test if two strings are <a href="http://en.wikipedia.org/wiki/Anagram">anagrams</a> of each other?</span></p>
+
+<p>There are many ways, but the naive solution is to simply sort both strings, character-wise, and then compare the results. In <a href="http://www.python.org">Python</a>, you might do that like so (We'll leave out the fact that anagrams are actually real words and phrases. We also work in a case-sensitive manor [e.g. "JimMorrison" and "MrMojoRisin" isn't truthy, though a simple <code class="inline">s.lower()</code> goes a long way.]):</p>
+
+<code class="python">def isAnagram(str1, str2):
+    if len(str1) != len(str2): return False
+    return sorted(str1) == sorted(str2)
+</code>
+
+<p>Here, I'm using <code class="inline">sorted</code>, a Python <code class="inline">__builtin__</code>, that takes an iterable and produces a sorted list of that iterable. I'm then taking advantage of the fact that Python lists can be compared element-wise with the <code class="inline">==</code> operator. Doing this produces a function that will work on any string, and it's simple to see why. Sort the string "parental" and you get "aaelnprt." Sort the string "paternal" and you still get "aaelnprt." Obviously "aaelnprt" and "aaelnprt" are equivalent. This of course returns <code class="inline">False</code> for the strings "snowman" and "iceman" since they don't compare sorted equally (or non-sorted for that matter).</p>
+
+<p>However, this solution isn't the most efficient use of resources. For one, most sorting algorithms are only <em>O(n log n)</em>, which means in the best case <code class="inline">isAnagram</code> is too. It also needs to allocate two lists to store the results returned by <code class="inline">sorted</code>.</p>
+
+<p>There is of course a way to do better. You just have to think about the problem for a little longer than a minute:</p>
+
+<code class="python">def isAnagramN(str1, str2):
+    if len(str1) != len(str2): return False
+    counts = defaultdict(lambda: [0, 0])
+
+    for c1, c2 in izip(str1, str2):
+        counts[c1][0] += 1
+        counts[c2][1] += 1
+
+    for k, v in counts.iteritems():
+        if v[0] != v[1]:
+            return False
+    return True
+</code>
+
+<p>This code does not allocate proportionally to the size of the strings, but instead on the diversity of the strings. In other words, <code class="inline">isAnagramN("aaaaaaa", "bbbbbbb")</code> allocates 1 defaultdict, and 2 lists of size 2. Why? Because, the algorithm simply counts up how many times each letter occurs in each string. Of course Python also has to allocate the generators to use for <code class="inline">izip</code> and <code class="inline">counts.iteritems()</code>, but that isn't significant. The big win here of course is that given strings of <em>any</em> length, the algorithm uses only as much space as the diversity of the contents contained in the strings!</p>
+
+<p>As if that wasn't a win enough, this algorithm runs in <em>O(n)</em> on the length of the strings!</p>
+
+<p>But, does it actually make a difference? The answer of course is yes. For strings of significant length, <code class="inline">isAnagramN</code> runs almost 2x as fast as <code class="inline">isAnagram</code>.</p>
+
+<p>The proof is in the bacon, so let's take a look at some numbers. Using Python's <code class="inline">timeit</code> module, I tested strings of length 1 through 100,001, incrementing by 10,000 (I've tested other lengths as well, and reach a similar conclusion). At each length, the test was repeated 50 times. The results are below:</p>
+
+<style type="text/css">
+td { text-align: right; }
+td.win { background-color: #ADFF2F; font-weight: bold;}
+td.first { background: #dddddd; font-weight: bold; color: #222222; }
+</style>
+
+<table cellspacing="5" style="margin: 0 auto;">
+  <thead>
+    <tr>
+    <th>Length</th>
+    <th>Time isAnagram</th>
+    <th>Time isAnagramN</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+     <td class="first">1</td><td class="win">0.00043511390686</td><td>0.000530958175659</td>
+     </tr>
+     <tr>
+     <td class="first">10001</td><td>0.657309055328</td><td class="win">0.38395690918</td>
+     </tr>
+     <tr>
+     <td class="first">20001</td><td>1.25437283516</td><td class="win">0.793761968613</td>
+     </tr>
+     <tr>
+     <td class="first">30001</td><td>1.91431283951</td><td class="win">1.15374517441</td>
+     </tr>
+     <tr>
+     <td class="first">40001</td><td>2.55181908607</td><td class="win">1.53560996056</td>
+     </tr>
+     <tr>
+     <td class="first">50001</td><td>3.14615797997</td><td class="win">2.07976388931</td>
+     </tr>
+     <tr>
+     <td class="first">60001</td><td>3.76745486259</td><td class="win">2.30041193962</td>
+     </tr>
+     <tr>
+     <td class="first">70001</td><td>4.48913788795</td><td class="win">2.81828999519</td>
+     </tr>
+     <tr>
+     <td class="first">80001</td><td>5.155148983</td><td class="win">3.09482097626</td>
+     </tr>
+     <tr>
+     <td class="first">90001</td><td>5.67185592651</td><td class="win">3.477850914</td>
+     </tr>
+     <tr>
+     <td class="first">100001</td><td>6.33614587784</td><td class="win">3.94285678864</td>
+     </tr>
+  </tbody>
+</table>
+
 <p>
-<span class="preamble">Earlier this summer, I started taking a look at the <a href="http://caml.inria.fr/" title="Objective-Caml">OCaml</a> programming language in anticipation of the compilers class I'm taking this fall.</span>
+  Download the code: <a href="http://files.sigusr2.net/anagram.py">anagram.py</a>
 </p>
 
-<p>OCaml is a strongly, <a href="http://en.wikipedia.org/wiki/Type_system#Static_typing">statically typed</a>, functional language with <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>. It's pretty neat, and supports imperative programming as well as object-oriented constructs for when you need them. As a language, I've found few things wrong with it, except for the edit-compile-run cycle (I prefer the edit-run cycle you get in a language like Scheme, or even Python), but OCaml does actually have a toplevel (the toplevel isn't crippled either, but it doesn't seem realistic to not compile for testing, at least I haven't yet found it to be). 
-</p>
-
-<p>Anyway, among all the amazing features of OCaml, the two that stand out as being the most useful are pattern matching (on types) and the simplicity of defining new types and creating constructors:</p>
-
-<pre><code class="ocaml">type astnode = 
-| AndNode of astnode * astnode
-| OrNode of astnode * astnode
-| NotNode of astnode 
-| IdNode of bool
-
-let rec eval_node (n: astnode) = 
-  match n with
-  | AndNode (l, r) -> (eval_node l) && (eval_node r)
-  | OrNode (l, r) -> (eval_node l) || (eval_node r)
-  | NotNode l -> not (eval_node l)
-  | IdNode v -> v
-
-eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
-</code></pre>
-
-<p>Of course, the type annotation, <code class="inline">(n: astnode)</code>, is optional due to the type inference engine, but the above example shows a simple example type that might be used when defining a language to do boolean arithmetic. It's quick to see that the combination of type constructors (like the <code class="inline">IdNode</code> above) and pattern matching simplify this incredibly.
-</p>
-
-<p>But, we don't get this sort of coolness in Python. No, in Python, we can make classes, but we do not get type checking of any kind, unless of course we do it at runtime manually. That's because Python is <a href="http://en.wikipedia.org/wiki/Type_system#Dynamic_typing">dynamically typed</a>.</p>
-
-<p>On the other hand, if we <em>really</em> want to, we can use the built in functions <code class="inline">isinstance</code> and <code class="inline">type</code> to raise errors when incompatible types are passed along to functions. This is slow, but it works. And, in some cases, like the one I'm about to show, maybe it doesn't matter, if you get certain benefits.</p>
-
-<p>Consider a language, like before, that does boolean arithmetic. It'll support boolean <abbr title="Both true">AND</a> (&amp;), <abbr title="One or the other true">OR</abbr> (|), <abbr title="One or the other true, but not both">XOR</abbr> (^) and NOT (!). A valid expression in this language is of the form <code class="inline">t & !(f | t)</code> which evaluates to <code class="inline">false</code>.</p>
-
-<p>I've created two different parsers for this language. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bptuples.py" rel="nofollow">bptuples</a>, I create an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree" title="Abstract Syntax Tree">AST</a> using Python tuples of the form <code class="inline">('AndNode', t, f)</code>. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bpnodes.py" rel="nofollow">bpnodes</a>, however, I take a more elegant approach when building the <abbr title="Abstract Syntax Tree">AST</abbr>&mdash;I create "OCaml like" type constructors.</p>
-
-<pre><code class="python">
-ASTNode = deftype('ASTNode', ())
-AndNode = deftype('AndNode', (ASTNode, ASTNode,), ASTNode)
-OrNode = deftype('OrNode', (ASTNode, ASTNode,), ASTNode)
-XorNode = deftype('XorNode', (ASTNode, ASTNode,), ASTNode)
-NotNode = deftype('NotNode', (ASTNode,), ASTNode)
-IdNode = deftype('IdNode', (bool,), ASTNode)
-</code></pre>
-
-<p>This defines all the Python classes needed at runtime. <code class="inline">deftype</code> takes up to 3 arguments. The first argument is the name of the class, the second is a tuple of classes which it can accept as arguments, and the optional third argument is a parent class to inherit from. The optional third argument is only necessary if you need multiple constructors for the same type, as in the case of our OCaml example above, and this example here.</p>
-
-<p>The code for <code class="inline">deftype</code> is actually pretty simple:</p>
-
-<pre><code class="python">
-def deftype(name, types, extends=None):
-    class _dtype(object):
-        def __init__(self, *args):
-            for i, a in enumerate(zip(args, self.types)):
-                if isinstance(a[0], a[1]):
-                    self.__setattr__('op%d' % i, a[0])
-                else:
-                    raise TypeError("%s expected argument of type " % \
-                                        (self.__class__.__name__,
-                                         str(a[1])))
-    if extends:
-        parents = (_dtype, extends,)
-    else:
-        parents = (_dtype,)
-    return type(name, parents, {'types': types})
-</code></pre>
-
-<p>Basically, what it does is use the Python built-in <code class="inline">type</code> to construct a class at runtime with an attribute called <code class="inline">types</code> which holds the class names of the expected arguments to the constructor of the type. On construction, the arguments are enumerated and attributes are created of the form <code class="inline">op0</code>...<code class="inline">opN</code>.</p>
-
-<p>It's a mouthful, for sure, but all that means is that when we construct a new <code class="inline">AndNode</code>, we are sure that the arguments the instance was created with are indeed <code class="inline">ASTNode</code>s, and those nodes are accessible at <code class="inline">op0</code> and <code class="inline">op1</code>.</p>
-
-<p>At a cursory glance, you might be thinking, "but what does this actually do for us?" Well, honestly, not much, but you do get to abstract out some more runtime type checking and do dynamic dispatch with the help of some Python decorators. Observe:</p>
-
-<pre><code class="python">
-@multimethod(AndNode)
-def interpret(ast):
-    return interpret(ast.op0) and interpret(ast.op1)
-
-@multimethod(XorNode)
-def interpret(ast):
-    left = interpret(ast.op0)
-    right = interpret(ast.op1)
-    return (left or right) and not (left and right)
-
-@multimethod(OrNode)
-def interpret(ast):
-    return interpret(ast.op0) or interpret(ast.op1)
-
-@multimethod(NotNode)
-def interpret(ast):
-    return not interpret(ast.op0)
-
-@multimethod(IdNode)
-def interpret(ast):
-    return ast.op0
-</code></pre>
-
-<p>That's the entire interpreter to walk the AST and evaluate boolean expressions, and is called via <code class="inline">interpret(parseBool(tokenizer('t & ! (t | f)')))</code>.</p>
-
-<p>In the tuple version, it's actually shorter when you use <code class="inline">if</code> statements, but this approach is much more readable in my opinion. The <a href="http://www.artima.com/weblogs/viewpost.jsp?thread=101605">multimethod decorator</a> runs the correct <code class="inline">interpret</code> based on the types of arguments.</p>
-
-<p> This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</p>
-
-
-
+<h5 class="tag-list">Tagged: 
+  <a href="/tags/algorithms.html">algorithms</a>
+     , <a href="/tags/python.html">python</a>
+     
+</h5>
 </div>
 
 
 <h3 class="other">Other Recent Posts</h3>
+
+   <p>15 Dec 2008&mdash;<a href="/2008/Dec/15/chocolate-cupcakes.html">Chocolate Cupcakes</a></p>
+
+   <p>30 Sep 2008&mdash;<a href="/2008/Sep/30/python-type-constructors-like-ocaml.html">Python Type Constructors a la OCaml</a></p>
 
    <p>18 Sep 2008&mdash;<a href="/2008/Sep/18/bayesian-failure.html">The Failure of Bayesian Filtering For Automated Screening of Med School Applications</a></p>
 
@@ -149,7 +145,7 @@ def interpret(ast):
       <div id="sidebar">
         <h2>About</h2>
         <p>
-          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>.
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
         </p>
         <h2>Syndicate</h2>
         <ul>
@@ -157,6 +153,10 @@ def interpret(ast):
         </ul>
         <h2>Archives</h2>
         <ul>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (1)">January 2009 (1)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
         
         <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
         

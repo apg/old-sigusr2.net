@@ -6,6 +6,14 @@
 <h2>{{ entry.title|escape }}</h2>
 <h4>{{ entry.date.strftime('%B %d, %Y') }} <span class="permalink"><a href="{{ entry.permaurl|escape }}" title="permalink">#</a></span></h4>
 {{ entry.content }}
+{% if entry.tags -%}
+<h5 class="tag-list">Tagged: 
+  {% for tag in entry.tags -%}
+     <a href="/tags/{{ tag }}.html">{{ tag }}</a>
+     {% if not loop.last %}, {% endif %}
+  {%- endfor %}
+</h5>
+{%- endif %}
 </div>
 {% endfor %}
 
