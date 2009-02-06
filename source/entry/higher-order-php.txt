@@ -1,0 +1,67 @@
+title: Higher Order PHP
+date: 2009-02-06
+tags: functional, php, lambda-the-ultimate
+---
+<p><span class="preamble">There's no doubt in my mind that <a href="http://en.wikipedia.org/wiki/Higher_order_programming">Higher order programming</a> is value added to a programmers toolbox, and with the pending release of PHP 5.3, it's about to become much more mainstream.</span></p>
+
+<p><a href="http://www.php.net">PHP</a>, as it stands currently (pre 5.3), already has some support for higher-order programming by passing around the names of functions as strings. It also supports so-called <a href="http://en.wikipedia.org/wiki/Anonymous_functions">anonymous functions</a>, via the <a href="http://www.php.net/create_function"><code class="inline">create_function</code></a> function, though PHP does give those functions a name (something like "<code class="inline">lambda_N</code>"). 
+</p>
+
+<p>Functions created in this way, or created in the "normal" PHP way, can then be used in library functions such as <a href="http://www.php.net/array_map"><code class="inline">array_map</code></a>, <a href="http://www.php.net/array_reduce"><code class="inline">array_reduce</code></a> and <a href="http://www.php.net/array_filter"><code class="inline">array_filter</code></a>. These are extremely useful for performing some action on each element of the array passed as an argument, but it seems rare that PHP programmers actually use them in practice.</p>
+
+<p>It may be the case that most PHP programmers don't know about these functions, or it could be the case that these functions are extremely awkward to use currently due to the requirement of having already created the function elsewhere.</p>
+
+<p>See, in nearly every major language that supports higher-order programming, a concept of <a href="http://en.wikipedia.org/wiki/Lexical_closure">closure</a> comes into play. This is extremely useful when creating functions one off anonymous functions to pass around. Basically, when a function is defined within some lexical scope, variables that are "<a href="http://en.wikipedia.org/wiki/Free_variable">free</a>" in that function must be "<a href="http://en.wikipedia.org/wiki/Bound_variable">bound</a>" in an enclosing <a href="http://en.wikipedia.org/wiki/Scope_(programming)">environment</a>, or when one uses a variable it will be undefined, causing an error. The solution is simply to keep a reference to the enclosing environment when the function is created.</p>
+
+<code class="scheme">
+(define (make-counter starting) 
+   (lambda (increment) ;;; the variable `starting` occurs "free" in this function
+      (set! starting (+ starting increment))
+      starting))
+
+(define count (make-counter 0))
+(define count2 (make-counter 3))
+
+(count 1) ;;; sets starting in the closure 'count' to 1 and returns it
+(count2 5) ;;; sets starting in the closure 'count2' to 8 and returns it
+(count 3) ;;; sets starting in the closure 'count' to 4 and returns it
+</code>
+
+<p>In the example above, <code class="inline">count</code> and <code class="inline">count2</code> both refer to different starting values. <code class="inline">make-counter</code> "closed" over the environment each time it was called and produced closures. <code class="inline">make-counter</code> has the effect of being a function factory that stamps a starting value on the function returned.</p>
+
+<p>So, until the alpha release of PHP 5.3, it was impossible to create a function that referred to it's enclosing environment without lots of hackery. PHP 5.3, makes it possible, but in a slightly awkward way.
+</p>
+
+<code class="php">
+function make_counter($starting) {
+   return function ($increment) use (&$starting) {
+      $starting += $increment;
+      return $starting;
+   };
+}
+</code>
+
+<p>PHP doesn't allow you to keep a reference to the entire enclosing environment; instead you must explicitly state which variables you want to be able to refer to. Taking that one step further, you must decide whether or not you want that variable to be re-assignable and "pass by reference," if you do. I think it's a little clumsy, but the introduced <code class="inline">use</code> keyword at least makes these things a little bit self-documenting.</p>
+
+<code class="php">
+$cnt = make_counter(5);
+$cnt2 = make_counter(15);
+
+echo $cnt(5) . " == 10?\n"; // outputs: 10 == 10?
+echo $cnt2(-15) . " == 0?\n"; // 0 == 0?
+echo $cnt2(5) . " == 5?\n"; // 5 == 5?
+</code>
+
+<p>As you can see, it does pretty much the same thing as was done in the Scheme example above.</p>
+
+<p>So now it's time to exploit it.</p>
+
+<h3>Introducing Fn.php</h3>
+
+<p>Throughout the history of <a href="http://en.wikipedia.org/wiki/Functional_programming">functional programming</a>, programmers (and non programmers alike), have identified many useful functions for performing operations. These include the functions above such as <code class="inline">array_map</code>, <code class="inline">array_reduce</code> and <code class="inline">array_filter</code>, but also things like <a href="http://en.wikipedia.org/wiki/Currying"><code class="inline">curry</code></a>, which given a function <code class="inline">g</code> and an argument <code class="inline">a</code>, returns a function that promises to call the function <code class="inline">g</code> with the argument <code class="inline">a</code> plus whatever arguments are passed to it. In effect, <code class="inline">curry</code>, delays the function call until more knowledge is known. (Incidently, the <code class="inline">make-counter</code> function uses currying.)</p>
+
+<p><a href="http://hg.apgwoz.com/fn-php">Fn.php</a> is an attempt to define lots of useful higher-order functions to PHP, and fix some of the things that are inconsistent with the others. Fn.php already supports the things in PHP that already exist, but adds <code class="inline">foldr</code>, <code class="inline">compose</code>, <code class="inline">zip</code>, <code class="inline">andf</code>, <code class="inline">orf</code>, <code class="inline">not</code>, <code class="inline">any</code>, <code class="inline">every</code>, <code class="inline">curry</code>, <code class="inline">I</code>, <code class="inline">K</code>, <code class="inline">S</code>, <code class="inline">flip</code> and a new short hand way to define functions with strings.</p>
+
+<p>
+There's virtually no documentation, and very little in the way of examples or tests. It was started on a whim yesterday when I woke up, so we'll see where it goes.
+</p>
