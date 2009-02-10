@@ -70,7 +70,6 @@ q {
  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Gentium, Georgia, serif;
 }
 #header h1 {
- text-align: left;
  display: block;
 /* background: #888888;*/
  text-indent: -999999em;
@@ -137,17 +136,14 @@ q {
  background: #eeeeee;
  border-top: 1px solid #cccccc;
  overflow: auto;
- width: 535px;
 }
 #content code.inline {
  display: inline;
- border: 0;
- padding: 0;
- margin: 0;
+ border: inherit;
  background: transparent;
+ padding: inherit; 
+ margin: inherit;
  white-space: inherit;
- overflow: none;
- font-size: inherit;
 }
 /* top level ordered lists */
 #content > ol.explicit-list {
@@ -166,7 +162,6 @@ q {
 
 #content p {
  font-size: 1.2em;
- max-width: 550px;
 }
 #content p span.preamble {
  font-size: 1.25em;
