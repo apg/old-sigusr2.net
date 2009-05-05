@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block site_title %}
+ &gt; {{ title|escape }}
+{% endblock %}
+
+{% block site_content %}
+<h2>{{ title|escape }}</h2>
+{{ content }}
+{% endblock %}

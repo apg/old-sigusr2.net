@@ -1,35 +1,7 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta http-equiv="Content-Language" content="en-us" />
-    <meta name="ROBOTS" content="all" />
-    <meta name="googlebot" content="noodp" />
-    <meta name="MSSmartTagsPreventParsing" content="true" />
-    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
-    <meta name="keywords" content="" />
-    <meta name="description" content="" />
-    <meta name="author" content="Andrew Gwozdziewycz" />
-    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
-    <link rel="shortcut icon" href="/favicon.ico" />        
-
-    <link rel="stylesheet" href="/css/screen.css" media="screen,projector" type="text/css" />
-    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
-    <title>SIGUSR2 
- &gt; Dispatching With &#34;with&#34;
-</title>
-</head>
-<body>
-  <div id="wrapper">
-    <div id="header">
-      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
-    </div>
-    <div id="content-wrapper" class="clearfix">
-      <div id="content">
-        
-<h2>Dispatching With &#34;with&#34;</h2>
-<h4>March 04, 2009 <span class="permalink"><a href="/2009/Mar/04/dispatching-with-with.html" title="permalink">#</a></span></h4>
+Title: Dispatching With "with"
+Date: 2009-03-04 08:15
+Tags: python, with, web, ideas
+---
 <p>
 <span class="preamble">Since <a href="http://www.python.org">Python</a> 2.5, we've had access to a new contstruct called the <a href="http://www.python.org/dev/peps/pep-0343/"><code class="inline">with</code></a>-statement. Using them is as simple as implementing the <a href="http://www.python.org/doc/2.5.2/lib/typecontextmanager.html">context manager protocol</a> for classes.
 </span>
@@ -148,64 +120,3 @@ if __name__ == '__main__':
 </code>
 
 <p>It's declarative, simple, and eliminates a lot of noise, but we no longer get the packaging, or the ability to easily seperate our resources into multiple files. But, for one file web apps, maybe it's useful.</p>
-
-
-<h5 class="tag-list">Tagged: 
-  <a href="/tags/python.html">python</a>
-     , <a href="/tags/with.html">with</a>
-     , <a href="/tags/web.html">web</a>
-     , <a href="/tags/ideas.html">ideas</a>
-     
-</h5>
-
-
-      </div>
-      <div id="sidebar">
-        <h2>About</h2>
-        <p>
-          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
-        </p>
-        <p>
-          Follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>!
-        </p>
-	<h2>Inside</h2>
-	<ul>
-          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
-	</ul>
-        <h2>Syndicate</h2>
-        <ul>
-          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
-        </ul>
-        <h2>Archives</h2>
-        <ul>
-        
-        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
-        
-        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
-        
-        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
-        
-        <li><a href="/2009/Jan/" title="January 2009 (1)">January 2009 (1)</a></li>
-        
-        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
-        
-        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
-        
-        </ul>
-      </div>
-    </div>
-
-    <div id="footer">
-       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
-    </div>
-  </div>
-<script type="text/javascript">
-var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-</script>
-<script type="text/javascript">
-var pageTracker = _gat._getTracker("UA-354660-9");
-pageTracker._trackPageview();
-</script>
-</body>
-</html>
