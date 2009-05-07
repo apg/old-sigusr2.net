@@ -4,7 +4,7 @@
 <div class="list-post">
 {% for entry in objects[0:1] %}
 <h2>{{ entry.title|escape }}</h2>
-<h4>{{ entry.date.strftime('%B %d, %Y') }} <span class="permalink"><a href="{{ entry.permaurl|escape }}" title="permalink">#</a></span></h4>
+<h4>{{ entry.date.strftime('%B %d, %Y') }} <span class="permalink"><a href="{{ entry.permaurl|escape }}#disqus_thread" title="permalink">#</a></span></h4>
 {{ entry.content }}
 {% if entry.tags -%}
 <h5 class="tag-list">Tagged: 
@@ -21,4 +21,21 @@
 {% for entry in objects[1:] %}
    <p>{{ entry.date.strftime('%d %b %Y') }}&mdash;<a href="{{ entry.permaurl }}">{{ entry.title|escape }}</a></p>
 {% endfor %}   
+{% endblock %}
+
+{% block body_footer %}
+<script type="text/javascript">
+//<![CDATA[
+(function() {
+		var links = document.getElementsByTagName('a');
+		var query = '?';
+		for(var i = 0; i < links.length; i++) {
+			if(links[i].href.indexOf('#disqus_thread') >= 0) {
+				query += 'url' + i + '=' + encodeURIComponent(links[i].href) + '&';
+			}
+		}
+		document.write('<script charset="utf-8" type="text/javascript" src="http://disqus.com/forums/sigusr2/get_num_replies.js' + query + '"></' + 'script>');
+	})();
+//]]>
+</script>
 {% endblock %}
