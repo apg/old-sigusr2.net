@@ -1,4 +1,90 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-05-07T19:22:37Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>The Hacker's Utility Belt: SSH</title><link href="/2009/May/07/hacker-utility-belt-ssh.html"/><id>md5:1c30eb53e322a859bb17913f525bd6ef</id><updated>2009-05-07T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Most hackers<a href="#f1">[1]</a> aren't <a href="http://en.wikipedia.org/wiki/Batman">Batman</a>, but aside from <a href="http://en.wikipedia.org/wiki/Batman%27s_utility_belt">Batman's utility belt</a>, the Batcave and Alfred, he's no different than you and me.</span></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-07-22T07:58:05Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>The Case of the Unusable Reusable</title><link href="/2009/Jul/22/case-of-the-unusable-reusable.html"/><id>md5:1790e770e90b7ed37ba8eeeda62034a7</id><updated>2009-07-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">The <a href="http://www.djangoproject.com/">Django</a> web framework has a huge following that releases lots of simple reusable apps that can be plugged into your website. However, sometimes they are too simple, and not "plugin-able" quite enough.</span></p>
+
+<p>Take for instance <a href="http://code.google.com/p/django-favorites/" title="django-favorites on Google Code">django-favorites</a>. By itself it's a great package that does exactly what you want&mdash;it allows a user to mark things as being a favorite. Notice that I said "things." "Things" here means any model, because it uses the <a href="http://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/#id1" title="Generic Relations">generic relationships</a> framework that Django provides.</p>
+
+<p>This is a huge win on its own because it means that I don't have to define a new favorites model for blog posts, one for photos and another for music I'm listening too. But, there's a downside to this as well.</p>
+
+<p>How do I check to see if an item is a favorite? Well, for each blog post I select back from the database, I have to make another query to see whether or not it was a favorite or not. Alternatively, of course, I could be smarter and do a bulk query using an <code class="inline">IN</code> clause, making the query count only 2. But, if I wasn't using an <a href="http://en.wikipedia.org/wiki/Object-relational_mapping" title="Object Relational Mapper">ORM</a>, my SQL would use an <code class="inline">OUTER JOIN</code>, or a sub-query to select back whether or not it was marked a favorite for the current user.</p>
+
+<p>Django can do this using the <a href="http://docs.djangoproject.com/en/dev/ref/models/querysets/#queryset-methods-that-return-new-querysets"><code class="inline">extra</code></a> method for <code class="inline">QuerySet</code>s.</p>
+
+<p>Ok, so we can use <code class="inline">extra</code> every time we want to 
+select back whether or not an item is a favorite, no big deal.</p>
+
+<code class="python">content_type = ContentType.objects.get_for_model(Photo)
+SQL = """SELECT 1 FROM favorites_favorite f
+WHERE f.content_type_id = %(content_type)d and
+      f.object_id = photos_photo.id and
+      f.user_id = %(user_id)d
+"""
+attrs = {'content_type': content_type.id, 'user_id': user.id}
+entries = Photo.objects.extra(select={'is_favorite': SQL % attrs})
+</code>
+
+<p>Except that you have to do this every time. So, you then create a custom manager for <code class="inline">Photo</code> that includes a <code class="inline">check_is_favorite</code> method, which adds the <code class="inline">is_favorite</code> pseudo-column and everything is good.</p>
+
+<p>That is until you have to do it for <code class="inline">Entry</code>, and <code class="inline">Song</code>, and <code class="inline">User</code>.</p>
+
+<p>The solution however is simple. Reusable apps should include a "ManagerMixin", if it makes sense to make reusing the app as painless as possible. The django-favorites application that I've been using in my example would be complete in my eyes if it had something like this defined in it:</p>
+
+<code class="python">class FavoritesManagerMixin(object):
+    """ A Mixin to add a `favorite__favorite` column via extra 
+    """
+    def with_favorite_for(self, user, all=True):
+        """ Adds a column favorite__favorite to the returned object, which
+        indicates whether or not this item is a favorite for a user
+        """
+        content_type = ContentType.objects.get_for_model(self.model)
+        pk_field = "%s.%s" % (qn(self.model._meta.db_table),
+                              qn(self.model._meta.pk.column))
+
+        favorite_sql = """(SELECT 1 FROM %(favorites_db_table)s 
+WHERE %(favorites_db_table)s.object_id = %(pk_field)s and
+      %(favorites_db_table)s.content_type_id = %(content_type)d and
+      %(favorites_db_table)s.user_id = %(user_id)d)
+""" % {'pk_field': pk_field, \
+           'db_table': qn(self.model._meta.db_table), \
+           'favorites_db_table': qn(Favorite._meta.db_table), \
+           'user_id': user.pk, \
+           'content_type': content_type.id, \
+           }
+
+        extras = {
+            'select': {'favorite__favorite': favorite_sql},
+            }
+
+        if not all:
+            extras['where'] = ['favorite__favorite == 1']
+
+        return self.extra(**extras)
+</code>
+
+<p>I have yet to run a bench mark against this to determine whether or not the sub-query here is less efficient than doing an <code class="inline">OUTER JOIN</code>. My gut says it would be, but for a first go at it, I'll keep it like this.</p>
+
+<p>Anyway, then to make use of this you create a custom manager that uses <code class="inline">FavoritesManagerMixin</code> as one of its base classes:</p>
+
+<code class="python">class SongManager(models.Manager, <strong>FavoritesMixinManager</strong>):
+    pass
+
+class Song(models.Model):
+    title = models.CharField(max_length=255, null=False, blank=False)
+    artist = models.ForeignKey('Artist')
+    album = models.ForeignKey('Album')
+
+    <strong>objects = SongManager()</strong>
+</code>
+
+<p>And then to make use of it, we do:</p>
+<code class="python">all_songs_with_favorites_marked = Song.objects.with_favorite_for(user)
+only_favorite_songs = Song.objects.with_favorite_for(user, all=False)
+</code>
+
+<p>The intention of this post isn't to point out a flaw in django-favorites, an otherwise great reusable application, BTW, but instead is meant to give a way that this idea of reusable can actually be usable.</p>
+
+<p>I put my django-favorites on <a href="http://github.com/apgwoz/django-favorites/">github</a>. Feel free to flame me for going against what this post stands for and creating yet another "favorites" reusable app, without submitting a patch to the original, I wanted some practice in Django development.
+</p>
+]]></content></entry>
+<entry><title>The Hacker's Utility Belt: SSH</title><link href="/2009/May/07/hacker-utility-belt-ssh.html"/><id>md5:1c30eb53e322a859bb17913f525bd6ef</id><updated>2009-05-07T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Most hackers<a href="#f1">[1]</a> aren't <a href="http://en.wikipedia.org/wiki/Batman">Batman</a>, but aside from <a href="http://en.wikipedia.org/wiki/Batman%27s_utility_belt">Batman's utility belt</a>, the Batcave and Alfred, he's no different than you and me.</span></p>
 
 <p>He's got strength and training on his side, but I could probably take him if he didn't have his belt and was blindfolded. Give him his utility belt though, and I'd be doomed. That's not because his belt has super powers&mdash;instead his belt contains tools that are useful in common situations of distress, and of course detective work. The Bat-grappling hook for instance allows him to scale buildings and walls, and tranquillizer darts allow him to temporarily disable a foe. Batarangs, with practice, can be used to disable an opponent by aiming for a body part, or to cut down a hanging chandelier, creating yet another obstacle for foes to fight through.</p>
 
