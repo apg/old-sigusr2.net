@@ -1,4 +1,129 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-07-22T07:58:05Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>The Case of the Unusable Reusable</title><link href="/2009/Jul/22/case-of-the-unusable-reusable.html"/><id>md5:1790e770e90b7ed37ba8eeeda62034a7</id><updated>2009-07-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">The <a href="http://www.djangoproject.com/">Django</a> web framework has a huge following that releases lots of simple reusable apps that can be plugged into your website. However, sometimes they are too simple, and not "plugin-able" quite enough.</span></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-10-01T08:55:12Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Python Worlds</title><link href="/2009/Oct/01/python-worlds.html"/><id>md5:8ec25d2f452904fcb32829303656bf92</id><updated>2009-10-01T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
+
+<p>Worlds allow you to capture the current scope of a program in a first-class way. All updates to the current state (i.e. local variables, global variables) happen in a non-commiting way. In other words, you can back out of any changes at any time.</p>
+
+<p>Consider the following example (taken from the <a href="http://www.vpri.org/pdf/rn2008001_worlds.pdf">Warth paper</a>):</p>
+
+<pre><code class="javascript">A = thisWorld; // thisWorld is always the current world
+r = new Rectangle(4, 6);
+
+B = A.sprout(); // sprout creates a new world with it's parent set to A
+in B { r.h = 3; } // side effects within this `in' occur only in the world B.
+
+C = A.sprout();
+in C { r.h = 7 }; // in A's world r.h = 6 still.
+
+C.commit(); // only now does r.h = 7 in world A.
+</code></pre>
+
+<p>If you follow along in the comments I've appended to the example, you'll start to see why this idea is interesting, even from this little example.</p>
+
+<p>The astute Scheme programmer, however, will notice almost certainly that this construct could be created with <code class="inline">call/cc</code>, which is certainly true. The problem with this fact is that not all programming languages are Scheme (unfortunately), and of course not all languages support first-class <a href="http://en.wikipedia.org/wiki/Continuation">continuations</a>.</p>
+
+<p>The question I asked myself, however, is this: <q>Can I hack worlds into Python?</q> To which I came up with the short answer after some thinking, <q>sort of.</q>
+
+<p>I guess I should explain what's going on more clearly in the example above. The first thing to note is that <code class="inline">A</code> represents the current scope; the current state of all variables in the program. <q>Sprouting</q> a new world from an existing world means that any changes that occur when using the sprouted world, do not affect the world who sprouted the current world, unless the new world <em>commits</em> the changes made to the original world.</p>
+
+<p>Which is to say, changes that occur in an <code class="inline">in</code> block acting on world <code class="inline">X</code> do not propagate to the parent (the world <code class="inline">X</code> was sprouted from) of <code class="inline">X</code> unless <code class="inline">X.commit()</a> is called.</p>
+
+<h3>Enter Context Managers</h3>
+
+<p>A few months ago, I wrote a blog post about <em><a href="">Dispatching With "with"</a></em>, in which I explained <a href="">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
+
+<p>The basic idea of this was that in the <code class="inline">__exit__</code> method of the web-application object, the current frame was inspected and references to functions that represent HTTP methods would be collected, stored and tied to the last regular expression passed to the <code class="inline">expose</code> method in the application object. This simple solution allowed us to express a web application succinctly like so:
+
+<pre><code class="python">app = web.application()
+with app.expose('/'):
+   def get(): 
+       return "Hello World"
+app.run()
+</code></pre>
+
+<p>For worlds, I also exploit context managers, though mostly for the <code class="inline">in</code>-like syntax, and for managing the current <code class="inline">thisWorld</code> variable.</p>
+
+<p>The quick<a href="#f1">[1]</a> solution that I came up with for <a href="http://github.com/apgwoz/python-worlds">implementing worlds</a> can be used like so:</p>
+
+<pre><code class="python">with Universe(): # establishes new world, assigns to local variable `thisWorld'
+   thisWorld.r = True # must assign <em>directly</em> in the world. LIMITATION
+   new = thisWorld.sprout() 
+
+   with new:
+       new.r = False
+
+   with new.sprout():
+       thisWorld.r = 15
+       thisWorld.commit() # now new.r is 15, but the original r is still True
+
+   print thisWorld.r # => True
+   new.commit()
+   print thisWorld.r # => 15
+   thisWorld.commit() # have to commit to the actual scope LIMITATION
+   # r is now part of the local variables where this universe exists
+   print r # => 15 
+</code></pre>
+
+<p>Looking at this example, it's already apparent that the Warth implementation of worlds is superior, just in the amount of code needed to take advantage of it. You might also see that I didn't even attempt to port the rectangle example  from above. That is because there isn't anything smart going on under the hood when it comes to container objects (such as lists, tuples, objects, dicts), and I'm not yet sure how to get there.</p>
+
+<p>With simple immutable objects such as booleans, integers and strings, using copy-on-write semantics works wonderfully. Then, on <code class="inline">commit</code> of the world, the code just copies all of the changes into its parent. I haven't tackled the case of mutable container objects just yet, as there are complications in the API<a href="#f2">[2]</a>, as well as the implementation.</p>
+
+<p>The interaction with this is sort of annoying though. In order to take advantage of worlds in Python, you have to touch virtually every line of code in the function you are trying to <q>worldize</q>, because you must assign explicitly to a world. The world's context manager sets up <code class="inline">thisWorld</code> for you, but you still have to do <code class="inline">thisWorld.<em>variable</em></code> to get any sort of benefit.</p>
+
+<p>My inclination is to get into some bytecode hacking to modify all assignments within the <code class="inline">with</code> block to be assignments to <code class="inline">thisWorld</code> automatically, but bytecode hacks are neither pleasant to maintain, nor are they portable across implementations.</p>
+
+<p>It's also possible in the Warth version to <q>worldize</q> functions and any other first class object. Maybe the solution is simple and I just haven't seen it yet. Whatever hacks, that I come up with though, will be just that, hacks, as there is no <em>easy</em> way to add worlds to Python in the same way that Warth added them to JavaScript<a href="#f3">[3]</a>.</p>
+
+<p>We are in an age of programming where mainstream programming languages are unable to adapt to our needs as programmers. We are unable to bend them at our will like we can with <a href="http://en.wikipedia.org/wiki/Scheme_%28programming_language%29">Scheme</a>, <a href="http://common-lisp.net/">Lisp</a> and even <a href="http://clojure.org/">Clojure</a>. Attempts to bring about change on this front have not been met with enthusiasm from most groups. Whether it's a lack of marketing, evangelism or just that the general population doesn't view <q>unbendability</q> as a problem, I'm not sure. But, I for one like the idea of being able to <em>easily</em> add worlds, and other ideas, as <em>true</em> language features to languages that by practicality, I'm forced into using. That would make me a much happier, and effective programmer.</p>
+
+<ol class="footnotes">
+    <li id="f1">By quick, I do mean quick. This was 2 hours of work and sketching. Surely there is lots of work to be done to make it a true solution.</li>
+    <li id="f2">The same strategy could be used as for simple values like booleans, if the API used a method, say <code class="inline">assign</code> instead of the more natural assignment operator. Consider, <code class="inline">thisWorld.assign('obj.height.inches', 30)</code> vs. <code class="inline">thisWorld.obj.height.inches = 30</code>.</li>
+    <li id="f3">The Worlds prototype was written in <a href="http://tinlizzie.org/ometa/">OMeta</a>, which is a solution to the "unbendable" languages problem. Note: I didn't attempt to write worlds in PyMeta, but, it may be possible to do.</li>
+</ol>
+]]></content></entry>
+<entry><title>Bitten... Really Hard</title><link href="/2009/Sep/09/bitten-really-hard.html"/><id>md5:56c6a1146108e40e674d0df15cd6c5b2</id><updated>2009-09-09T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last Friday I was bitten really hard by something I would not have, in my wildest dreams think would bite me, Python's <a href="http://docs.python.org/library/urllib2.html"><code class="inline">urllib2</a></code>.</span></p>
+
+<p>It is the ever so common case that you always hear, <q>It works fine here, it must be your fault.</q> And, boy did I come up with some interesting theories as to why it was not the fault of my code.</p>
+
+<p>Basically, I'm POSTing some data to a resource that is protected by <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">HTTP Basic Authentication</a>, and then reading the response for further processing. It is a basic task, and one that I've done many times in the past.</p>
+
+<p>In fact, I've even used <code class="inline">urllib2</code> to do this before using the following method:</p>
+<pre>
+<code class="python">headers = {'User-Agent': useragent}
+req = urllib2.Request(url, data, headers)
+ 
+passmgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+passmgr.add_password(None, url, username, passwd)
+handler = urllib2.HTTPBasicAuthHandler(passmgr)
+opener = urllib2.build_opener(handler)
+connection = opener.open(req)
+</code>
+</pre>
+
+<p>In this case, the following behavior is seen:</p>
+
+<ol>
+  <li>Client (urllib2) POSTs data leaving out the <code class="inline">Authorization</code> header</li>
+  <li>Server responds with a <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2">401</a>. Client (urllib2) never sees the 401 error, and instead gets a <a href="http://en.wikipedia.org/wiki/SIGPIPE">SIGPIPE</a></li>
+  <li>Client attempts to reconnect, going right back to step 1</li>
+</ol>
+
+<p>Naturally, the only way I discovered this was to fire up <a href="http://en.wikipedia.org/wiki/Tcpdump">tcpdump</a> and look at what was being sent. It quickly became obvious that there was never an <code class="inline">Authorization</code> header being sent, and therefore the 401 was completely justified. The broken pipe seems to have come from the server responding before reading all of the posted data to thwart off <a href="http://en.wikipedia.org/wiki/Denial-of-service_attack">denial of service</a> attacks.</p>
+
+<p>My only explanation for why this works perfectly fine on my laptop and not in either of the data centers I tried running it from is latency, though I'm shocked, and not yet convinced, by that result.</p>
+
+<p>Incidentally, I solved the problem by sending the <code class="inline">Authorization</code> header on first request, rather than waiting for the confirmation that, yes indeed, the resource needs the Authorization header sent, as <code class="inline">urllib2</code> likes to do.</p>
+
+<code class="python">headers = {'User-Agent': useragent, 
+         'Authorization': 'Basic ' + base64.b64encode(username + ':' + passwd)}
+req = urllib2.Request(url, data, headers)
+connection = urllib2.urlopen(req)
+</code>
+
+<p>... and now it works fine.</p>
+
+<p>This whole experience will make me think twice before laying the blame anywhere until I have uncovered the real truth, something I think all programmers should learn to do, if they don't know already.</p>
+]]></content></entry>
+<entry><title>The Case of the Unusable Reusable</title><link href="/2009/Jul/22/case-of-the-unusable-reusable.html"/><id>md5:1790e770e90b7ed37ba8eeeda62034a7</id><updated>2009-07-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">The <a href="http://www.djangoproject.com/">Django</a> web framework has a huge following that releases lots of simple reusable apps that can be plugged into your website. However, sometimes they are too simple, and not "plugin-able" quite enough.</span></p>
 
 <p>Take for instance <a href="http://code.google.com/p/django-favorites/" title="django-favorites on Google Code">django-favorites</a>. By itself it's a great package that does exactly what you want&mdash;it allows a user to mark things as being a favorite. Notice that I said "things." "Things" here means any model, because it uses the <a href="http://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/#id1" title="Generic Relations">generic relationships</a> framework that Django provides.</p>
 
@@ -664,110 +789,6 @@ def interpret(ast):
 
 <p> This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</p>
 
-
-]]></content></entry>
-<entry><title>The Failure of Bayesian Filtering For Automated Screening of Med School Applications</title><link href="/2008/Sep/18/bayesian-failure.html"/><id>md5:f10c2840e1d10debae66e6dfe782f90e</id><updated>2008-09-18T22:20:00Z</updated><content type="html"><![CDATA[<p>
-<span class="preamble">OK, I'll admit it. I <em>failed</em>. I failed to apply a simple Bayes net to a simple problem, which humans can do with a little bit of reading and some coffee.</span>
-</p>
-
-<p>At my place of employment, we have a problem. Our solutions to this problem, right now, relies too much on time consuming human interaction and, certainly, too much on the knowledge gained from history. The problem is that of a multitude of pre-med students hoping to be granted the opportunity to come here for an interview regarding admission into the world renouned medical school. </p>
-
-<p>It'd be both impractical and impossible to interview everyone, so there exists a rigorous screening process before interview decisions are made. We have some tools that automatically look through an application and parameterise it for easier searching. We also have some tools that automatically weed out applications that have extremely low <abbr title="Medical College Admission Test">MCAT</abbr>s and <abbr title="Grade Point Average">GPA</abbr>s. By and large, these processes get the number of applications the screening team must thoroughly inspect down to a manageable number of very competitive candidates, but the number is still too large.</p>
-
-<p>Now, immediately you must be thinking, <q>Why can't they just change the parameters to eliminate more people?</q> And the answer is that we could, but what the screeners look for isn't just numeric. The screeners are looking at many different aspects of the candidates past. Many of the students accepted to the school weren't the top students in their class. They certainly weren't horrible students academically, but they had diverse experiences in school, or otherwise, that the professors of the school felt qualified them as being an outstanding addition to this premier institution.</p>
-
-<p>As a programmmer, I see this as a fun and interesting challenge. A challenge where I can apply some "computer sciency" things to add just a touch of intelligence to the automated process and filter out those candidates that maybe are not as "rock star" as they appear in numbers. My first though was to use a <a href="http://en.wikipedia.org/wiki/Naive_Bayes_classifier" title="Naive Bayes on WikiPedia">Naive Bayes classifier</a>.</p>
-
-<p>A medical school applicant writes a lot. <a href="http://www.aamc.org" title="American Medical College Application Service">AMCAS</a> asks of students to submit information on past experiences (e.g. research, personal, travel, professional, community service), and for information about publications they've (co)authored, and a personal statement. In addition, applicants submit some other free form text to us directly. This data seems like a natural fit for training a classifier.</p>
-
-<p>So, I go with it; I mention to my project manager that it might be possible to probabalistically predict the scores generated from the manual, time consuming screening process, using historic applicant entered data as a training corpus. As his eyes lit up, I explained the basic idea of a Naive Bayes classifier and said, <q>it's the basis of many SPAM filters.</q> This was enough to sell it to him, and to our immediate client, the Admissions office. I now had permission to play around and see how well I could predict the past.</p>
-
-<p>From the database, I pulled out as much data as I possible could and build two buckets; successful and unsuccessful. Successful candidates had the property that they were all likely invited for interviews, and well unsuccessful weren't. I tried to make it roughly even, taking as many of the least successful candidates as I could to match as closely as possible to the number of successful candidates. I proceeded to write a basic Naive Bayes classifier, made it general enough that I could add and subtract some ideas easily, and setup a simple cross validation. I was set.</p>
-
-<p>I couldn't have been more excited to see things pass the screen like:</p>
-
-<pre><code>Run 0 -------------
-Good: S 57 / F 17 = 0.773333
-Bad: S 22 / F 49 = 0.319444
-Run 1 -------------
-Good: S 71 / F 3 = 0.960000
-Bad: S 8 / F 63 = 0.125000
-Run 2 -------------
-Good: S 70 / F 4 = 0.946667
-Bad: S 13 / F 58 = 0.194444
-Run 3 -------------
-Good: S 61 / F 13 = 0.826667
-Bad: S 12 / F 59 = 0.180556</code></pre>
-
-<p>But the results didn't look good to me. The first line "Good: ... " states that of the 74 attempts at classifying a known "successful" candidate only 57 were predicted correctly. Even worse, only 22 of the "unsuccessful" candidates were predicted successfully. Surely, this could be fixed, I thought. It's simply a matter of doing better smoothing, and eliminating the common words with high frequencies. </p>
-
-<p>Still nothing. Stem the words? Worse. Eliminate more words? Worse. Smoothing? No better. Discouragement sets in.</p>
-
-<p>I look into it a bit further and discover something interesting. All these essays, all these experiences sound exactly the same! They all talk about community service and late nights in the research labs. They all discuss the fact that for as long as they can remember they've wanted to become physicians. It's as if all the candidates are the same person.</p>
-
-<p>They aren't. Unlike a note from my wife and an offer for viagra or cialis, their goals are the same, and their language is in the same domain.</p>
-
-<p>Seems like I need another idea.</p>
-]]></content></entry>
-<entry><title>Announcing the Return of Modest</title><link href="/2008/Sep/08/announcing-modest.html"/><id>md5:46bc9058d3455dcb80e42e14e83535bd</id><updated>2008-09-08T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">As a programmer, I pride myself in being lazy. This might at first seem like a horrible thing to take pride in but hear me out.</span></p>
-
-<p>Let me give you an example related to my day job. Two weeks ago I was given a CSV file containing 2000+ rows with the header row of <code class="inline">original_request_id,request_id,first_name,last_name,amount,status_cd</code>. Inside was a list of credit card transactions that were taken from development and migrated to the production credit card processor. But, as luck would have it some credit credit cards had expired, had insufficient funds, or were just flat out denied when the charge authorization was requested during this migration. </p>
-
-<p>So, obviously, someone had to go through and filter through this CSV file, find the entries that had succeeded and make note that the user was paid up in full. Additionally, we needed to filter the failed results, find the user and tell them there was a problem with their payment. In other words, we needed 2 lists&mdash;payees and repayors. </p>
-
-<p>At this point I knew I had a few choices. I could fire up GNU Emacs, run <code class="inline">M-x keep-lines</code>, save the buffer, undo and then run <code class="inline">M-x flush-lines</code>, save and have two lists. Then of course, I'd have to spend the afternoon looking up everyone in the list and recording the proper data changes.</p>
-
-<p>The other option would be to be lazy and write about 5 lines of Python and turn the 2000+ row CSV file into 2 SQL queries, which Oracle would happily run for me. The work it takes to craft the 5 lines, would almost certainly be less work than the manual labor.</p>
-
-<p>Naturally, as the first sentence suggests I choose the second option.</p>
-
-<pre><code class="python">
-lines = open('records.csv').readlines()[1:]
-payors = [x.split(',')[0] for x in lines if '(Accept)' in x]
-repays = [x.split(',')[0] for x in lines if '(Failure)' in x]
-print "UPDATE PAID SET paid = 1 WHERE pid IN (select pid from TRANS WHERE rid IN ('%s');" % ','.join(["'" + i + "'" for i in payors])
-print "UPDATE PAID SET paid = 0 WHERE pid IN (select pid from TRANS WHERE rid IN ('%s');" % ','.join(["'" + i + "'" for i in repays])
-</code></pre>
-
-<p>But, you gotta ask yourself, "is this laziness?"</p>
-
-<h3>What Does This Have to Do With Modest?</h3>
-
-<p>There's a concern I have with some types of software where more work is being done than is really necessary. The definitive example is of course blogs.
-</p>
-
-<p>Back in the early days of blogs, the writer was tasked at creating a new static page (probably from a template) and hand crafting the HTML that made up the new post. If the blog had comments, they might include a file using <abbr title="Server Side Includes">SSI</abbr> to display the comments, and the CGI script that processed comments would do nothing more than write the comment to the file included. And even when the first blog "engines" came out, which automated the tedious process of copying the template and hand assembling the new page and all of the indexes, they were just a series of forms and CGI scripts that took the values of some form fields and generated the static HTML files for you.
-</p>
-
-<p>But somewhere along the lines, the process of compiling a blog was over engineered. Writers felt that their posts needed to be <abbr title="Just in Time">JIT</abbr> compiled, which required that blogs actually serve dynamic HTML rather than just serving a static file. Suddenly, storing posts in databases became the norm, which resulted in high loads on servers when sites like <a href="http://slashdot.org/">Slashdot</a> published a link to your site on their homepage.</p>
-
-<p>The Slashdot Effect, as it became known, resulted in many things like the community mirroring of sites, and eventually, public <abbr title="Content Distribution Networks">CDN</abbr>s started popping up like <a href="http://www.coralcdn.org/">Coral Cache</a> to mirror the site automatically. This is mostly unnecessary when you consider the fact that had blogs not been so reliant on a database backend, servers could have withstood a much higher load, and stood up by themselves under many situations.</p>
-
-<p>In fact, the first thing that most shared hosting companies will do in the event of the Slashdot Effect, or Digg Effect, seems to be to take a static snapshot of the page and serve that.</p>
-
-<p>Modest cuts out the middle man. Everything is served as static HTML, because I believe that JIT compiling blog engines do too much work. Modest doesn't require a database, doesn't generate content on the fly, but with a little luck, some time and a little ingenuity, I feel that it will become as full featured a blog engine as you can get for command line use. </p>
-
-<h3>Return?</h3>
-
-<p>A few years ago, I wrote an initial version of Modest, in Python, which generated static HTML from simple text files. It worked fairly well, but wasn't flexible. The date of the post was based on the files <code class="inline">ctime</code>, and there was no way to really add metadata to the post. This worked fine, but in some cases (e.g. <code class="inline">cp post.txt post.txt.bak</code>) you simply loose the date information. The quick fix I came up with was to cache the <code class="inline">ctime</code> in another file, which was just a mess. And of course, this only solved storing one piece of metadata.</p>
-
-<p>The new version of Modest, which will be released for public consumption very soon, had unlimited metadata potential, because the entry actually contains a spot for it. Each post is defined simply by doing:</p>
-
-<pre><code>
-Title: Some Post
-Date: 2008-10-10 10:10:32
-Tags: something, strange, neighborhood, ghostbusters
-Published: True
-UnknownMetaData1: gets converted to a string
-UnknownMetaData2: False
----
-Post body goes here, but note&mdash;the Date field becomes a Python datetime, 
-and Published becomes a Python boolean True. These values become available 
-in the template's context. 
-</code></pre>
-
-<p>Because those variables become available in the template's context, interesting things can now occur. Suddenly you can, without changing your database schema, make certain posts behave differently, just by including a bit more metadata and adding the appropriate logic to your templates. It's not very <abbr title="Model-View-Controller">MVC</abbr>, but who cares about that? The point is, you get flexibility for free, and flexibility is another part of being lazy. This all happens to tie into another project, but we're out of time for now. Look for more of Modest soon.
-</p>
 
 ]]></content></entry>
 

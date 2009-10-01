@@ -1,0 +1,48 @@
+Title: Bitten... Really Hard
+date: 2009-09-09
+tags: bugs, python, http
+comments: True
+published: True
+---
+<p><span class="preamble">Last Friday I was bitten really hard by something I would not have, in my wildest dreams think would bite me, Python's <a href="http://docs.python.org/library/urllib2.html"><code class="inline">urllib2</a></code>.</span></p>
+
+<p>It is the ever so common case that you always hear, <q>It works fine here, it must be your fault.</q> And, boy did I come up with some interesting theories as to why it was not the fault of my code.</p>
+
+<p>Basically, I'm POSTing some data to a resource that is protected by <a href="http://en.wikipedia.org/wiki/Basic_access_authentication">HTTP Basic Authentication</a>, and then reading the response for further processing. It is a basic task, and one that I've done many times in the past.</p>
+
+<p>In fact, I've even used <code class="inline">urllib2</code> to do this before using the following method:</p>
+<pre>
+<code class="python">headers = {'User-Agent': useragent}
+req = urllib2.Request(url, data, headers)
+ 
+passmgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+passmgr.add_password(None, url, username, passwd)
+handler = urllib2.HTTPBasicAuthHandler(passmgr)
+opener = urllib2.build_opener(handler)
+connection = opener.open(req)
+</code>
+</pre>
+
+<p>In this case, the following behavior is seen:</p>
+
+<ol>
+  <li>Client (urllib2) POSTs data leaving out the <code class="inline">Authorization</code> header</li>
+  <li>Server responds with a <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.2">401</a>. Client (urllib2) never sees the 401 error, and instead gets a <a href="http://en.wikipedia.org/wiki/SIGPIPE">SIGPIPE</a></li>
+  <li>Client attempts to reconnect, going right back to step 1</li>
+</ol>
+
+<p>Naturally, the only way I discovered this was to fire up <a href="http://en.wikipedia.org/wiki/Tcpdump">tcpdump</a> and look at what was being sent. It quickly became obvious that there was never an <code class="inline">Authorization</code> header being sent, and therefore the 401 was completely justified. The broken pipe seems to have come from the server responding before reading all of the posted data to thwart off <a href="http://en.wikipedia.org/wiki/Denial-of-service_attack">denial of service</a> attacks.</p>
+
+<p>My only explanation for why this works perfectly fine on my laptop and not in either of the data centers I tried running it from is latency, though I'm shocked, and not yet convinced, by that result.</p>
+
+<p>Incidentally, I solved the problem by sending the <code class="inline">Authorization</code> header on first request, rather than waiting for the confirmation that, yes indeed, the resource needs the Authorization header sent, as <code class="inline">urllib2</code> likes to do.</p>
+
+<code class="python">headers = {'User-Agent': useragent, 
+         'Authorization': 'Basic ' + base64.b64encode(username + ':' + passwd)}
+req = urllib2.Request(url, data, headers)
+connection = urllib2.urlopen(req)
+</code>
+
+<p>... and now it works fine.</p>
+
+<p>This whole experience will make me think twice before laying the blame anywhere until I have uncovered the real truth, something I think all programmers should learn to do, if they don't know already.</p>
