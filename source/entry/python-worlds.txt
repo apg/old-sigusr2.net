@@ -34,7 +34,7 @@ C.commit(); // only now does r.h = 7 in world A.
 
 <h3>Enter Context Managers</h3>
 
-<p>A few months ago, I wrote a blog post about <em><a href="">Dispatching With "with"</a></em>, in which I explained <a href="">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
+<p>A few months ago, I wrote a blog post about <em><a href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html">Dispatching With "with"</a></em>, in which I explained <a href="http://www.python.org/dev/peps/pep-0343/">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
 
 <p>The basic idea of this was that in the <code class="inline">__exit__</code> method of the web-application object, the current frame was inspected and references to functions that represent HTTP methods would be collected, stored and tied to the last regular expression passed to the <code class="inline">expose</code> method in the application object. This simple solution allowed us to express a web application succinctly like so:
 
