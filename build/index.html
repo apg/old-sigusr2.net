@@ -28,99 +28,43 @@
         
 <div class="list-post">
 
-<h2>Python Worlds</h2>
-<h4>October 01, 2009 <span class="permalink"><a href="/2009/Oct/01/python-worlds.html#disqus_thread" title="permalink">#</a></span></h4>
-<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
+<h2>Remote Objects</h2>
+<h4>November 20, 2009 <span class="permalink"><a href="/2009/Nov/20/remote-objects.html#disqus_thread" title="permalink">#</a></span></h4>
+<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
 
-<p>Worlds allow you to capture the current scope of a program in a first-class way. All updates to the current state (i.e. local variables, global variables) happen in a non-commiting way. In other words, you can back out of any changes at any time.</p>
+<p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
 
-<p>Consider the following example (taken from the <a href="http://www.vpri.org/pdf/rn2008001_worlds.pdf">Warth paper</a>):</p>
+<p>Right away I hit one. The data models for these 2 very different pieces of software are insanely different (who knew?). Roundup makes <em>use of</em> a <a href="http://en.wikipedia.org/wiki/SQL">SQL</a> database, but not in a traditional way. And, activeCollab combines almost all of its entities into one table. This of course makes querying with SQL incredibly difficult, and a SQL to SQL translation close to impossible.</p>
 
-<pre><code class="javascript">A = thisWorld; // thisWorld is always the current world
-r = new Rectangle(4, 6);
+<p>Luckily, in moving to activeCollab, we inherited a somewhat <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">RESTful</a>, API that allows for the modification and creation of entities. As a result, it became apparent that the logical way to migrate this was to pull the data out using the Roundup's libraries and make the appropriate API calls with the translated data.</p>
 
-B = A.sprout(); // sprout creates a new world with it's parent set to A
-in B { r.h = 3; } // side effects within this `in' occur only in the world B.
+<p>To make it easy on myself, I developed a quick <a href="http://en.wikipedia.org/wiki/Object_relational_mapper">ORM</a>-like interface to the APIs. I had the idea that if I could make it work for activeCollab, it must be generalizable enough to work for other services and APIs as well, which I could do later.</p>
 
-C = A.sprout();
-in C { r.h = 7 }; // in A's world r.h = 6 still.
+<p>And, I was right. It could be more generalized, and it could be useful. In fact, the idea was so useful that 3,000 miles away in the San Francisco office someone else was already secretly working on the same idea!</p>
 
-C.commit(); // only now does r.h = 7 in world A.
-</code></pre>
+<h3>Enter Remote Objects</h3>
 
-<p>If you follow along in the comments I've appended to the example, you'll start to see why this idea is interesting, even from this little example.</p>
+<p>The result of the secretive effort, that I became aware of, is called <a href="http://github.com/sixapart/remoteobjects/">Remote Objects</a>, which identifies itself as <q>An object RESTational model.</q> <a href="http://sixapart.com/">Six Apart</a> has graciously released it as part of the requirements to run <a href="http://www.typepad.com/go/motion">TypePad Motion</a>, which is also available, under a <a href="http://en.wikipedia.org/wiki/BSD_License">BSD License</a>, on <a href="http://github.com/sixapart/typepad-motion">github</a>.</p>
 
-<p>The astute Scheme programmer, however, will notice almost certainly that this construct could be created with <code class="inline">call/cc</code>, which is certainly true. The problem with this fact is that not all programming languages are Scheme (unfortunately), and of course not all languages support first-class <a href="http://en.wikipedia.org/wiki/Continuation">continuations</a>.</p>
+<p>But, just because its main intentions were for being used against the <a href="http://developer.typepad.com/api/rest.html">TypePad APIs</a>, doesn't mean that it <em>only</em> works with them.</p>
 
-<p>The question I asked myself, however, is this: <q>Can I hack worlds into Python?</q> To which I came up with the short answer after some thinking, <q>sort of.</q>
+<p>In fact, the developers had the foresight to think that this would be useful in other cases too, just as I did, as can be seen in the <a href="http://github.com/sixapart/remoteobjects/tree/master/examples">examples</a> that come with the package.</p>
 
-<p>I guess I should explain what's going on more clearly in the example above. The first thing to note is that <code class="inline">A</code> represents the current scope; the current state of all variables in the program. <q>Sprouting</q> a new world from an existing world means that any changes that occur when using the sprouted world, do not affect the world who sprouted the current world, unless the new world <em>commits</em> the changes made to the original world.</p>
-
-<p>Which is to say, changes that occur in an <code class="inline">in</code> block acting on world <code class="inline">X</code> do not propagate to the parent (the world <code class="inline">X</code> was sprouted from) of <code class="inline">X</code> unless <code class="inline">X.commit()</a> is called.</p>
-
-<h3>Enter Context Managers</h3>
-
-<p>A few months ago, I wrote a blog post about <em><a href="">Dispatching With "with"</a></em>, in which I explained <a href="">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
-
-<p>The basic idea of this was that in the <code class="inline">__exit__</code> method of the web-application object, the current frame was inspected and references to functions that represent HTTP methods would be collected, stored and tied to the last regular expression passed to the <code class="inline">expose</code> method in the application object. This simple solution allowed us to express a web application succinctly like so:
-
-<pre><code class="python">app = web.application()
-with app.expose('/'):
-   def get(): 
-       return "Hello World"
-app.run()
-</code></pre>
-
-<p>For worlds, I also exploit context managers, though mostly for the <code class="inline">in</code>-like syntax, and for managing the current <code class="inline">thisWorld</code> variable.</p>
-
-<p>The quick<a href="#f1">[1]</a> solution that I came up with for <a href="http://github.com/apgwoz/python-worlds">implementing worlds</a> can be used like so:</p>
-
-<pre><code class="python">with Universe(): # establishes new world, assigns to local variable `thisWorld'
-   thisWorld.r = True # must assign <em>directly</em> in the world. LIMITATION
-   new = thisWorld.sprout() 
-
-   with new:
-       new.r = False
-
-   with new.sprout():
-       thisWorld.r = 15
-       thisWorld.commit() # now new.r is 15, but the original r is still True
-
-   print thisWorld.r # => True
-   new.commit()
-   print thisWorld.r # => 15
-   thisWorld.commit() # have to commit to the actual scope LIMITATION
-   # r is now part of the local variables where this universe exists
-   print r # => 15 
-</code></pre>
-
-<p>Looking at this example, it's already apparent that the Warth implementation of worlds is superior, just in the amount of code needed to take advantage of it. You might also see that I didn't even attempt to port the rectangle example  from above. That is because there isn't anything smart going on under the hood when it comes to container objects (such as lists, tuples, objects, dicts), and I'm not yet sure how to get there.</p>
-
-<p>With simple immutable objects such as booleans, integers and strings, using copy-on-write semantics works wonderfully. Then, on <code class="inline">commit</code> of the world, the code just copies all of the changes into its parent. I haven't tackled the case of mutable container objects just yet, as there are complications in the API<a href="#f2">[2]</a>, as well as the implementation.</p>
-
-<p>The interaction with this is sort of annoying though. In order to take advantage of worlds in Python, you have to touch virtually every line of code in the function you are trying to <q>worldize</q>, because you must assign explicitly to a world. The world's context manager sets up <code class="inline">thisWorld</code> for you, but you still have to do <code class="inline">thisWorld.<em>variable</em></code> to get any sort of benefit.</p>
-
-<p>My inclination is to get into some bytecode hacking to modify all assignments within the <code class="inline">with</code> block to be assignments to <code class="inline">thisWorld</code> automatically, but bytecode hacks are neither pleasant to maintain, nor are they portable across implementations.</p>
-
-<p>It's also possible in the Warth version to <q>worldize</q> functions and any other first class object. Maybe the solution is simple and I just haven't seen it yet. Whatever hacks, that I come up with though, will be just that, hacks, as there is no <em>easy</em> way to add worlds to Python in the same way that Warth added them to JavaScript<a href="#f3">[3]</a>.</p>
-
-<p>We are in an age of programming where mainstream programming languages are unable to adapt to our needs as programmers. We are unable to bend them at our will like we can with <a href="http://en.wikipedia.org/wiki/Scheme_%28programming_language%29">Scheme</a>, <a href="http://common-lisp.net/">Lisp</a> and even <a href="http://clojure.org/">Clojure</a>. Attempts to bring about change on this front have not been met with enthusiasm from most groups. Whether it's a lack of marketing, evangelism or just that the general population doesn't view <q>unbendability</q> as a problem, I'm not sure. But, I for one like the idea of being able to <em>easily</em> add worlds, and other ideas, as <em>true</em> language features to languages that by practicality, I'm forced into using. That would make me a much happier, and effective programmer.</p>
-
-<ol class="footnotes">
-    <li id="f1">By quick, I do mean quick. This was 2 hours of work and sketching. Surely there is lots of work to be done to make it a true solution.</li>
-    <li id="f2">The same strategy could be used as for simple values like booleans, if the API used a method, say <code class="inline">assign</code> instead of the more natural assignment operator. Consider, <code class="inline">thisWorld.assign('obj.height.inches', 30)</code> vs. <code class="inline">thisWorld.obj.height.inches = 30</code>.</li>
-    <li id="f3">The Worlds prototype was written in <a href="http://tinlizzie.org/ometa/">OMeta</a>, which is a solution to the "unbendable" languages problem. Note: I didn't attempt to write worlds in PyMeta, but, it may be possible to do.</li>
-</ol>
+<p>Needless to say, I abandoned my implementation of this idea and will adopt Remote Objects in the future. Have a look. Hopefully it is useful in your toolbox too.</p>
 
 <h5 class="tag-list">Tagged: 
-  <a href="/tags/worlds.html">worlds</a>
-     , <a href="/tags/python.html">python</a>
+  <a href="/tags/python.html">python</a>
+     , <a href="/tags/rest.html">rest</a>
+     , <a href="/tags/api.html">api</a>
+     , <a href="/tags/plug.html">plug</a>
      
 </h5>
 </div>
 
 
 <h3 class="other">Other Recent Posts</h3>
+
+   <p>01 Oct 2009&mdash;<a href="/2009/Oct/01/python-worlds.html">Python Worlds</a></p>
 
    <p>09 Sep 2009&mdash;<a href="/2009/Sep/09/bitten-really-hard.html">Bitten... Really Hard</a></p>
 
@@ -137,8 +81,6 @@ app.run()
    <p>08 Jan 2009&mdash;<a href="/2009/Jan/08/anagrams-predicate.html">Anagrams Predicate</a></p>
 
    <p>15 Dec 2008&mdash;<a href="/2008/Dec/15/chocolate-cupcakes.html">Chocolate Cupcakes</a></p>
-
-   <p>30 Sep 2008&mdash;<a href="/2008/Sep/30/python-type-constructors-like-ocaml.html">Python Type Constructors a la OCaml</a></p>
    
 
       </div>
@@ -148,7 +90,7 @@ app.run()
           Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
         </p>
         <p>
-          Follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>!
+          You should follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>.
         </p>
 	<h2>Inside</h2>
 	<ul>
@@ -160,6 +102,8 @@ app.run()
         </ul>
         <h2>Archives</h2>
         <ul>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
         
         <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
         
@@ -182,15 +126,6 @@ app.run()
         <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
         
         </ul>
-        <h2>Ad Bard</h2>
-        <!--Ad Bard advertisement snippet, begin -->
-<script type='text/javascript'>
- var ab_h = '65997c9b7b5981e3cf2ebec769eea096';
- var ab_s = '7a46f7b695d2481693fe4724f778884a';
-</script>
-<script type='text/javascript' src='http://cdn1.adbard.net/js/ab1.js'></script>
-<!--Ad Bard, end -->
-
       </div>
     </div>
 

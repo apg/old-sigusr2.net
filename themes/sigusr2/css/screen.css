@@ -163,8 +163,11 @@ q {
  font-size: 1.2em;
 }
 #content p span.preamble {
- font-size: 1.25em;
+ font-family: "Palatino Linotype", "Book Antiqua", Palatino, Gentium, Georgia, serif;
+ font-size: 1.32em;
  font-weight: normal;
+ line-height: 1.35;
+ color: #222;
 }
 #content h2 {
  font-size: 2.4em;
@@ -262,3 +265,5 @@ h2.content-title {
 #content div.list-post {
  margin-bottom: 40px;
 }
+
+/* alternative color for links, etc: #ee3300 */

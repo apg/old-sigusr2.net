@@ -1,4 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-10-01T08:55:12Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Python Worlds</title><link href="/2009/Oct/01/python-worlds.html"/><id>md5:8ec25d2f452904fcb32829303656bf92</id><updated>2009-10-01T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-11-20T08:35:58Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Remote Objects</title><link href="/2009/Nov/20/remote-objects.html"/><id>md5:c613f9f24fe2f9428acc9780d5c39573</id><updated>2009-11-20T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
+
+<p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
+
+<p>Right away I hit one. The data models for these 2 very different pieces of software are insanely different (who knew?). Roundup makes <em>use of</em> a <a href="http://en.wikipedia.org/wiki/SQL">SQL</a> database, but not in a traditional way. And, activeCollab combines almost all of its entities into one table. This of course makes querying with SQL incredibly difficult, and a SQL to SQL translation close to impossible.</p>
+
+<p>Luckily, in moving to activeCollab, we inherited a somewhat <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">RESTful</a>, API that allows for the modification and creation of entities. As a result, it became apparent that the logical way to migrate this was to pull the data out using the Roundup's libraries and make the appropriate API calls with the translated data.</p>
+
+<p>To make it easy on myself, I developed a quick <a href="http://en.wikipedia.org/wiki/Object_relational_mapper">ORM</a>-like interface to the APIs. I had the idea that if I could make it work for activeCollab, it must be generalizable enough to work for other services and APIs as well, which I could do later.</p>
+
+<p>And, I was right. It could be more generalized, and it could be useful. In fact, the idea was so useful that 3,000 miles away in the San Francisco office someone else was already secretly working on the same idea!</p>
+
+<h3>Enter Remote Objects</h3>
+
+<p>The result of the secretive effort, that I became aware of, is called <a href="http://github.com/sixapart/remoteobjects/">Remote Objects</a>, which identifies itself as <q>An object RESTational model.</q> <a href="http://sixapart.com/">Six Apart</a> has graciously released it as part of the requirements to run <a href="http://www.typepad.com/go/motion">TypePad Motion</a>, which is also available, under a <a href="http://en.wikipedia.org/wiki/BSD_License">BSD License</a>, on <a href="http://github.com/sixapart/typepad-motion">github</a>.</p>
+
+<p>But, just because its main intentions were for being used against the <a href="http://developer.typepad.com/api/rest.html">TypePad APIs</a>, doesn't mean that it <em>only</em> works with them.</p>
+
+<p>In fact, the developers had the foresight to think that this would be useful in other cases too, just as I did, as can be seen in the <a href="http://github.com/sixapart/remoteobjects/tree/master/examples">examples</a> that come with the package.</p>
+
+<p>Needless to say, I abandoned my implementation of this idea and will adopt Remote Objects in the future. Have a look. Hopefully it is useful in your toolbox too.</p>
+]]></content></entry>
+<entry><title>Python Worlds</title><link href="/2009/Oct/01/python-worlds.html"/><id>md5:8ec25d2f452904fcb32829303656bf92</id><updated>2009-10-01T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
 
 <p>Worlds allow you to capture the current scope of a program in a first-class way. All updates to the current state (i.e. local variables, global variables) happen in a non-commiting way. In other words, you can back out of any changes at any time.</p>
 
@@ -24,11 +46,11 @@ C.commit(); // only now does r.h = 7 in world A.
 
 <p>I guess I should explain what's going on more clearly in the example above. The first thing to note is that <code class="inline">A</code> represents the current scope; the current state of all variables in the program. <q>Sprouting</q> a new world from an existing world means that any changes that occur when using the sprouted world, do not affect the world who sprouted the current world, unless the new world <em>commits</em> the changes made to the original world.</p>
 
-<p>Which is to say, changes that occur in an <code class="inline">in</code> block acting on world <code class="inline">X</code> do not propagate to the parent (the world <code class="inline">X</code> was sprouted from) of <code class="inline">X</code> unless <code class="inline">X.commit()</a> is called.</p>
+<p>Which is to say, changes that occur in an <code class="inline">in</code> block acting on world <code class="inline">X</code> do not propagate to the parent (the world <code class="inline">X</code> was sprouted from) of <code class="inline">X</code> unless <code class="inline">X.commit()</code> is called.</p>
 
 <h3>Enter Context Managers</h3>
 
-<p>A few months ago, I wrote a blog post about <em><a href="">Dispatching With "with"</a></em>, in which I explained <a href="">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
+<p>A few months ago, I wrote a blog post about <em><a href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html">Dispatching With "with"</a></em>, in which I explained <a href="http://www.python.org/dev/peps/pep-0343/">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
 
 <p>The basic idea of this was that in the <code class="inline">__exit__</code> method of the web-application object, the current frame was inspected and references to functions that represent HTTP methods would be collected, stored and tied to the last regular expression passed to the <code class="inline">expose</code> method in the application object. This simple solution allowed us to express a web application succinctly like so:
 
@@ -686,110 +708,5 @@ td.first { background: #dddddd; font-weight: bold; color: #222222; }
 </code></pre>
 
 <p>Enjoy!</p>]]></content></entry>
-<entry><title>Python Type Constructors a la OCaml</title><link href="/2008/Sep/30/python-type-constructors-like-ocaml.html"/><id>md5:5c9d3c4e3c5a50bf32b5481935fde949</id><updated>2008-09-30T07:00:00Z</updated><content type="html"><![CDATA[<p>
-<span class="preamble">Earlier this summer, I started taking a look at the <a href="http://caml.inria.fr/" title="Objective-Caml">OCaml</a> programming language in anticipation of the compilers class I'm taking this fall.</span>
-</p>
-
-<p>OCaml is a strongly, <a href="http://en.wikipedia.org/wiki/Type_system#Static_typing">statically typed</a>, functional language with <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>. It's pretty neat, and supports imperative programming as well as object-oriented constructs for when you need them. As a language, I've found few things wrong with it, except for the edit-compile-run cycle (I prefer the edit-run cycle you get in a language like Scheme, or even Python), but OCaml does actually have a toplevel (the toplevel isn't crippled either, but it doesn't seem realistic to not compile for testing, at least I haven't yet found it to be). 
-</p>
-
-<p>Anyway, among all the amazing features of OCaml, the two that stand out as being the most useful are pattern matching (on types) and the simplicity of defining new types and creating constructors:</p>
-
-<pre><code class="ocaml">type astnode = 
-| AndNode of astnode * astnode
-| OrNode of astnode * astnode
-| NotNode of astnode 
-| IdNode of bool
-
-let rec eval_node (n: astnode) = 
-  match n with
-  | AndNode (l, r) -> (eval_node l) && (eval_node r)
-  | OrNode (l, r) -> (eval_node l) || (eval_node r)
-  | NotNode l -> not (eval_node l)
-  | IdNode v -> v
-
-eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
-</code></pre>
-
-<p>Of course, the type annotation, <code class="inline">(n: astnode)</code>, is optional due to the type inference engine, but the above example shows a simple example type that might be used when defining a language to do boolean arithmetic. It's quick to see that the combination of type constructors (like the <code class="inline">IdNode</code> above) and pattern matching simplify this incredibly.
-</p>
-
-<p>But, we don't get this sort of coolness in Python. No, in Python, we can make classes, but we do not get type checking of any kind, unless of course we do it at runtime manually. That's because Python is <a href="http://en.wikipedia.org/wiki/Type_system#Dynamic_typing">dynamically typed</a>.</p>
-
-<p>On the other hand, if we <em>really</em> want to, we can use the built in functions <code class="inline">isinstance</code> and <code class="inline">type</code> to raise errors when incompatible types are passed along to functions. This is slow, but it works. And, in some cases, like the one I'm about to show, maybe it doesn't matter, if you get certain benefits.</p>
-
-<p>Consider a language, like before, that does boolean arithmetic. It'll support boolean <abbr title="Both true">AND</a> (&amp;), <abbr title="One or the other true">OR</abbr> (|), <abbr title="One or the other true, but not both">XOR</abbr> (^) and NOT (!). A valid expression in this language is of the form <code class="inline">t & !(f | t)</code> which evaluates to <code class="inline">false</code>.</p>
-
-<p>I've created two different parsers for this language. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bptuples.py" rel="nofollow">bptuples</a>, I create an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree" title="Abstract Syntax Tree">AST</a> using Python tuples of the form <code class="inline">('AndNode', t, f)</code>. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bpnodes.py" rel="nofollow">bpnodes</a>, however, I take a more elegant approach when building the <abbr title="Abstract Syntax Tree">AST</abbr>&mdash;I create "OCaml like" type constructors.</p>
-
-<pre><code class="python">
-ASTNode = deftype('ASTNode', ())
-AndNode = deftype('AndNode', (ASTNode, ASTNode,), ASTNode)
-OrNode = deftype('OrNode', (ASTNode, ASTNode,), ASTNode)
-XorNode = deftype('XorNode', (ASTNode, ASTNode,), ASTNode)
-NotNode = deftype('NotNode', (ASTNode,), ASTNode)
-IdNode = deftype('IdNode', (bool,), ASTNode)
-</code></pre>
-
-<p>This defines all the Python classes needed at runtime. <code class="inline">deftype</code> takes up to 3 arguments. The first argument is the name of the class, the second is a tuple of classes which it can accept as arguments, and the optional third argument is a parent class to inherit from. The optional third argument is only necessary if you need multiple constructors for the same type, as in the case of our OCaml example above, and this example here.</p>
-
-<p>The code for <code class="inline">deftype</code> is actually pretty simple:</p>
-
-<pre><code class="python">
-def deftype(name, types, extends=None):
-    class _dtype(object):
-        def __init__(self, *args):
-            for i, a in enumerate(zip(args, self.types)):
-                if isinstance(a[0], a[1]):
-                    self.__setattr__('op%d' % i, a[0])
-                else:
-                    raise TypeError("%s expected argument of type " % \
-                                        (self.__class__.__name__,
-                                         str(a[1])))
-    if extends:
-        parents = (_dtype, extends,)
-    else:
-        parents = (_dtype,)
-    return type(name, parents, {'types': types})
-</code></pre>
-
-<p>Basically, what it does is use the Python built-in <code class="inline">type</code> to construct a class at runtime with an attribute called <code class="inline">types</code> which holds the class names of the expected arguments to the constructor of the type. On construction, the arguments are enumerated and attributes are created of the form <code class="inline">op0</code>...<code class="inline">opN</code>.</p>
-
-<p>It's a mouthful, for sure, but all that means is that when we construct a new <code class="inline">AndNode</code>, we are sure that the arguments the instance was created with are indeed <code class="inline">ASTNode</code>s, and those nodes are accessible at <code class="inline">op0</code> and <code class="inline">op1</code>.</p>
-
-<p>At a cursory glance, you might be thinking, "but what does this actually do for us?" Well, honestly, not much, but you do get to abstract out some more runtime type checking and do dynamic dispatch with the help of some Python decorators. Observe:</p>
-
-<pre><code class="python">
-@multimethod(AndNode)
-def interpret(ast):
-    return interpret(ast.op0) and interpret(ast.op1)
-
-@multimethod(XorNode)
-def interpret(ast):
-    left = interpret(ast.op0)
-    right = interpret(ast.op1)
-    return (left or right) and not (left and right)
-
-@multimethod(OrNode)
-def interpret(ast):
-    return interpret(ast.op0) or interpret(ast.op1)
-
-@multimethod(NotNode)
-def interpret(ast):
-    return not interpret(ast.op0)
-
-@multimethod(IdNode)
-def interpret(ast):
-    return ast.op0
-</code></pre>
-
-<p>That's the entire interpreter to walk the AST and evaluate boolean expressions, and is called via <code class="inline">interpret(parseBool(tokenizer('t & ! (t | f)')))</code>.</p>
-
-<p>In the tuple version, it's actually shorter when you use <code class="inline">if</code> statements, but this approach is much more readable in my opinion. The <a href="http://www.artima.com/weblogs/viewpost.jsp?thread=101605">multimethod decorator</a> runs the correct <code class="inline">interpret</code> based on the types of arguments.</p>
-
-<p> This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</p>
-
-
-]]></content></entry>
 
 </feed>

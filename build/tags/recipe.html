@@ -16,7 +16,9 @@
 
     <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
     <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
-    <title>SIGUSR2 {% block site_title %}{{ config_sub_title }}{% endblock %}</title>
+    <title>SIGUSR2 
+ > Tagged recipe
+</title>
 </head>
 <body>
   <div id="wrapper">
@@ -25,8 +27,13 @@
     </div>
     <div id="content-wrapper" class="clearfix">
       <div id="content">
-        {% block site_content %}
-        {% endblock %}
+        
+<h2>Entries Tagged recipe</h2>
+
+
+   <p>15 Dec 2008&mdash;<a href="/2008/Dec/15/chocolate-cupcakes.html">Chocolate Cupcakes</a></p>
+
+
       </div>
       <div id="sidebar">
         <h2>About</h2>
@@ -46,9 +53,29 @@
         </ul>
         <h2>Archives</h2>
         <ul>
-        {% for x in site.get_archive() %}
-        <li><a href="{{ x.link }}" title="{{ x.name }} ({{ x.count }})">{{ x.name }} ({{ x.count }})</a></li>
-        {% endfor %}
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (1)">January 2009 (1)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
         </ul>
       </div>
     </div>
@@ -57,7 +84,7 @@
        &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
     </div>
   </div>
-{% block body_footer %}{% endblock %}
+
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
