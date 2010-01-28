@@ -28,41 +28,31 @@
         
 <div class="list-post">
 
-<h2>Remote Objects</h2>
-<h4>November 20, 2009 <span class="permalink"><a href="/2009/Nov/20/remote-objects.html#disqus_thread" title="permalink">#</a></span></h4>
-<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
+<h2>The Real Disappointment</h2>
+<h4>January 28, 2010 <span class="permalink"><a href="/2010/Jan/28/the-real-disappointment.html#disqus_thread" title="permalink">#</a></span></h4>
+<p><span class="preamble">It's no <a href="http://mashable.com/2010/01/27/apple-ipad-downsides/">secret</a> <a href="http://i.gizmodo.com/5458382/8-things-that-suck-about-the-ipad">that</a> <a href="http://www.pmptoday.com/2010/01/27/apple-ipad-tablet-disappoints-ibookstore-inspires-wonder/" rel="nofollow">Apple's</a> <a href="http://search.twitter.com/search?q=ipad+failhttp://search.twitter.com/search?q=ipad+fail" rel="nofollow">newly</a> released <a href="http://apple.com/ipad" title="iPad" rel="nofollow">iPad</a> is a big disappointment for many. For me the disappointment isn't in the device itself, but rather the <a href="http://www.defectivebydesign.org/ipad" title="Sign the petition">crippling control</a> that Apple has over it.</span></p>
 
-<p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
+<p>What I don't like about this, is that there are obvious uses of this thing outside of the basic computing needs Jobs demoed.</p>
 
-<p>Right away I hit one. The data models for these 2 very different pieces of software are insanely different (who knew?). Roundup makes <em>use of</em> a <a href="http://en.wikipedia.org/wiki/SQL">SQL</a> database, but not in a traditional way. And, activeCollab combines almost all of its entities into one table. This of course makes querying with SQL incredibly difficult, and a SQL to SQL translation close to impossible.</p>
+<p>Imagine being able to use this thing as a next generation "mouse." Perhaps it would allow multiple windows to be tossed around the screen, or moved around <a href="http://en.wikipedia.org/wiki/Three-card_Monte">"Three-card Monte"</a> style. It'd be revolutionary.</p>
 
-<p>Luckily, in moving to activeCollab, we inherited a somewhat <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">RESTful</a>, API that allows for the modification and creation of entities. As a result, it became apparent that the logical way to migrate this was to pull the data out using the Roundup's libraries and make the appropriate API calls with the translated data.</p>
+<p>I dare you to name a piece of software intended for creation that couldn't benefit from a multi-touch input pad&mdash;perhaps even customizable based on the context your in within the app? Photoshop sliders? Aperture light tables? Scaling and carving models in Cinema 4d or Maya? The list goes on.</p>
 
-<p>To make it easy on myself, I developed a quick <a href="http://en.wikipedia.org/wiki/Object_relational_mapper">ORM</a>-like interface to the APIs. I had the idea that if I could make it work for activeCollab, it must be generalizable enough to work for other services and APIs as well, which I could do later.</p>
+<p>Now, imagine 2 of them working in tandem. On the left, you have a hunking half-keyboard for the Q-W-E-R-T half, and on the right the Y-U-I-O-P half. Suddenly, we have a multitouch split keyboard (without haptic feedback of course), which could be the next generation of <a href="http://makezine.com/pub/tool/FingerWorks_TouchStream_LP">FingerWorks TouchStream</a> style devices, which Apple, for reasons unbeknownst to me, <a href="http://en.wikipedia.org/wiki/FingerWorks">ceased the operations</a> of. (If I had to guess why they killed off FingerWorks, it'd be that Apple thinks the market for ergonomics is oodles smaller than mobile multi-touch devices&mdash;and I reckon they're right.)</p>
 
-<p>And, I was right. It could be more generalized, and it could be useful. In fact, the idea was so useful that 3,000 miles away in the San Francisco office someone else was already secretly working on the same idea!</p>
-
-<h3>Enter Remote Objects</h3>
-
-<p>The result of the secretive effort, that I became aware of, is called <a href="http://github.com/sixapart/remoteobjects/">Remote Objects</a>, which identifies itself as <q>An object RESTational model.</q> <a href="http://sixapart.com/">Six Apart</a> has graciously released it as part of the requirements to run <a href="http://www.typepad.com/go/motion">TypePad Motion</a>, which is also available, under a <a href="http://en.wikipedia.org/wiki/BSD_License">BSD License</a>, on <a href="http://github.com/sixapart/typepad-motion">github</a>.</p>
-
-<p>But, just because its main intentions were for being used against the <a href="http://developer.typepad.com/api/rest.html">TypePad APIs</a>, doesn't mean that it <em>only</em> works with them.</p>
-
-<p>In fact, the developers had the foresight to think that this would be useful in other cases too, just as I did, as can be seen in the <a href="http://github.com/sixapart/remoteobjects/tree/master/examples">examples</a> that come with the package.</p>
-
-<p>Needless to say, I abandoned my implementation of this idea and will adopt Remote Objects in the future. Have a look. Hopefully it is useful in your toolbox too.</p>
+<p>The real disappointment with the iPad isn't that it can't run multiple apps, or that it'll be another $29.99 a month for 3G support for iPhone users. It's not even that the pixel density of the thing might make it tough to read books on. The real disappointment is the fact that the device is locked down and we'll never get the chance to use it to innovate the way we interact with our <em>real</em> computers.</p>
 
 <h5 class="tag-list">Tagged: 
-  <a href="/tags/python.html">python</a>
-     , <a href="/tags/rest.html">rest</a>
-     , <a href="/tags/api.html">api</a>
-     , <a href="/tags/plug.html">plug</a>
+  <a href="/tags/apple.html">apple</a>
+     , <a href="/tags/free software.html">free software</a>
      
 </h5>
 </div>
 
 
 <h3 class="other">Other Recent Posts</h3>
+
+   <p>20 Nov 2009&mdash;<a href="/2009/Nov/20/remote-objects.html">Remote Objects</a></p>
 
    <p>01 Oct 2009&mdash;<a href="/2009/Oct/01/python-worlds.html">Python Worlds</a></p>
 
@@ -79,8 +69,6 @@
    <p>06 Feb 2009&mdash;<a href="/2009/Feb/06/higher-order-php.html">Higher Order PHP</a></p>
 
    <p>08 Jan 2009&mdash;<a href="/2009/Jan/08/anagrams-predicate.html">Anagrams Predicate</a></p>
-
-   <p>15 Dec 2008&mdash;<a href="/2008/Dec/15/chocolate-cupcakes.html">Chocolate Cupcakes</a></p>
    
 
       </div>
@@ -102,6 +90,8 @@
         </ul>
         <h2>Archives</h2>
         <ul>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
         
         <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
         

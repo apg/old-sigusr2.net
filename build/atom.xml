@@ -1,4 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-11-20T08:35:58Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Remote Objects</title><link href="/2009/Nov/20/remote-objects.html"/><id>md5:c613f9f24fe2f9428acc9780d5c39573</id><updated>2009-11-20T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2010-01-28T06:51:10Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>The Real Disappointment</title><link href="/2010/Jan/28/the-real-disappointment.html"/><id>md5:14b52b115b36632711ab9050b7832862</id><updated>2010-01-28T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">It's no <a href="http://mashable.com/2010/01/27/apple-ipad-downsides/">secret</a> <a href="http://i.gizmodo.com/5458382/8-things-that-suck-about-the-ipad">that</a> <a href="http://www.pmptoday.com/2010/01/27/apple-ipad-tablet-disappoints-ibookstore-inspires-wonder/" rel="nofollow">Apple's</a> <a href="http://search.twitter.com/search?q=ipad+failhttp://search.twitter.com/search?q=ipad+fail" rel="nofollow">newly</a> released <a href="http://apple.com/ipad" title="iPad" rel="nofollow">iPad</a> is a big disappointment for many. For me the disappointment isn't in the device itself, but rather the <a href="http://www.defectivebydesign.org/ipad" title="Sign the petition">crippling control</a> that Apple has over it.</span></p>
+
+<p>What I don't like about this, is that there are obvious uses of this thing outside of the basic computing needs Jobs demoed.</p>
+
+<p>Imagine being able to use this thing as a next generation "mouse." Perhaps it would allow multiple windows to be tossed around the screen, or moved around <a href="http://en.wikipedia.org/wiki/Three-card_Monte">"Three-card Monte"</a> style. It'd be revolutionary.</p>
+
+<p>I dare you to name a piece of software intended for creation that couldn't benefit from a multi-touch input pad&mdash;perhaps even customizable based on the context your in within the app? Photoshop sliders? Aperture light tables? Scaling and carving models in Cinema 4d or Maya? The list goes on.</p>
+
+<p>Now, imagine 2 of them working in tandem. On the left, you have a hunking half-keyboard for the Q-W-E-R-T half, and on the right the Y-U-I-O-P half. Suddenly, we have a multitouch split keyboard (without haptic feedback of course), which could be the next generation of <a href="http://makezine.com/pub/tool/FingerWorks_TouchStream_LP">FingerWorks TouchStream</a> style devices, which Apple, for reasons unbeknownst to me, <a href="http://en.wikipedia.org/wiki/FingerWorks">ceased the operations</a> of. (If I had to guess why they killed off FingerWorks, it'd be that Apple thinks the market for ergonomics is oodles smaller than mobile multi-touch devices&mdash;and I reckon they're right.)</p>
+
+<p>The real disappointment with the iPad isn't that it can't run multiple apps, or that it'll be another $29.99 a month for 3G support for iPhone users. It's not even that the pixel density of the thing might make it tough to read books on. The real disappointment is the fact that the device is locked down and we'll never get the chance to use it to innovate the way we interact with our <em>real</em> computers.</p>
+]]></content></entry>
+<entry><title>Remote Objects</title><link href="/2009/Nov/20/remote-objects.html"/><id>md5:c613f9f24fe2f9428acc9780d5c39573</id><updated>2009-11-20T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
 
 <p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
 
@@ -680,33 +692,5 @@ td.first { background: #dddddd; font-weight: bold; color: #222222; }
   Download the code: <a href="http://files.sigusr2.net/anagram.py">anagram.py</a>
 </p>
 ]]></content></entry>
-<entry><title>Chocolate Cupcakes</title><link href="/2008/Dec/15/chocolate-cupcakes.html"/><id>md5:3410e6821ebb21b7c929fa42b3144244</id><updated>2008-12-15T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Every now and then, I dust off my copy of <em><a href="http://www.amazon.com/gp/product/0262560992?ie=UTF8&tag=siusdesi2-20&linkCode=as2&camp=1789&creative=9325&creativeASIN=0262560992">The Little Schemer</a><img src="http://www.assoc-amazon.com/e/ir?t=siusdesi2-20&l=as2&o=1&a=0262560992" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" /></em> and read a few sections. It's a great book, in a unique and friendly format.</span></p>
-
-<p>Part of the reason I pick up the book time and time again is because re-reading sections of it re-enforces the basic concepts that a Scheme programmer needs to know. Now I'm not saying I don't know these basic concepts, because I do, but my daily routine unfortunately does not involve Scheme. Instead, I spend my time not recursing on <code class="inline">cdr</code>s but using <a href="http://en.wikipedia.org/wiki/Imperative_programming" title="Imperative Programming">imperative</a> style looping constructs.</p>
-
-<p>And, since I like to make my own junk food, it's the perfect book since it leaves pages for jelly stains and provides a chocolate chip cookie recipe. I thought it'd be nice to share my new favorite cupcake recipe, with peppermint icing&mdash;just in time for the holidays. I've stolen <a href="http://www.cs.indiana.edu/~dfried/">Friedman</a> and <a href="http://www.ccs.neu.edu/home/matthias/">Felleisen</a>'s recipe format:</p>
-
-<pre><code class="scheme">
-(define (chocolate-cupcakes)
-  (bake '(375 degree) '(20 minute)
-        (mix (mix '(sugar 1 cup)
-                  '(flour 3/2 cup)
-                  '(baking-soda 1 teaspoon)
-                  '(cocoa 1/3 cup)
-                  '(apple-sauce 1/2 cup)
-                  '(cold-water 1 cup)
-                  '(vanilla 2 teaspoon)
-                  '(salt 1/2 teaspoon))
-             '(vinegar 2 tablespoon))))
-
-(define (peppermint-icing)
-  (mix '(butter 1/2 cup)
-       '(powdered-sugar 2 cup)
-       '(vanilla 1 teaspoon)
-       '(peppermint-extract 2 teaspoon)
-       '(milk 3 tablespoon)))
-</code></pre>
-
-<p>Enjoy!</p>]]></content></entry>
 
 </feed>
