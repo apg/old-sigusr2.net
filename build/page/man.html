@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta name="ROBOTS" content="all" />
+    <meta name="googlebot" content="noodp" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="Andrew Gwozdziewycz" />
+    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
+    <link rel="shortcut icon" href="/favicon.ico" />        
+
+    <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
+    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
+    <title>SIGUSR2 
+ &gt; SIGNAL(7)
+</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
+    </div>
+    <div id="content-wrapper" class="clearfix">
+      <div id="content">
+        
+<h2>SIGNAL(7)</h2>
+<pre>
+SIGNAL(7)		   Linux Programmer's Manual		     SIGNAL(7)
+
+<h4>NAME</h4>
+       signal - list of available signals
+
+<h4>DESCRIPTION</h4>
+       Linux  supports both POSIX reliable signals (hereinafter "standard sig-
+       nals") and POSIX real-time signals.
+
+  <b>Standard Signals</b>
+       Linux supports the standard signals listed below. Several  signal  num-
+       bers  are  architecture	dependent, as indicated in the "Value" column.
+       (Where three values are given, the first one is usually valid for alpha
+       and  sparc,  the  middle one for i386, ppc and sh, and the last one for
+       mips.  A - denotes that a signal is absent on the corresponding	archi-
+       tecture.)
+
+       The  entries  in  the  "Action" column of the table specify the default
+       action for the signal, as follows:
+
+       Term   Default action is to terminate the process.
+
+       Ign    Default action is to ignore the signal.
+
+       Core   Default action is to terminate the process and dump core.
+
+       Stop   Default action is to stop the process.
+
+       First the signals described in the original POSIX.1 standard.
+
+       Signal	  Value     Action   Comment
+       -------------------------------------------------------------------------
+       SIGHUP	     1	     Term    Hangup detected on controlling terminal
+				     or death of controlling process
+       SIGINT	     2	     Term    Interrupt from keyboard
+       SIGQUIT	     3	     Core    Quit from keyboard
+       SIGILL	     4	     Core    Illegal Instruction
+       SIGABRT	     6	     Core    Abort signal from abort(3)
+       SIGFPE	     8	     Core    Floating point exception
+       SIGKILL	     9	     Term    Kill signal
+       SIGSEGV	    11	     Core    Invalid memory reference
+       SIGPIPE	    13	     Term    Broken pipe: write to pipe with no readers
+       SIGALRM	    14	     Term    Timer signal from alarm(2)
+       SIGTERM	    15	     Term    Termination signal
+       SIGUSR1	 30,10,16    Term    User-defined signal 1
+       <strong>SIGUSR2	 31,12,17    Term    User-defined signal 2</strong>
+       SIGCHLD	 20,17,18    Ign     Child stopped or terminated
+       SIGCONT	 19,18,25	     Continue if stopped
+       SIGSTOP	 17,19,23    Stop    Stop process
+       SIGTSTP	 18,20,24    Stop    Stop typed at tty
+       SIGTTIN	 21,21,26    Stop    tty input for background process
+       SIGTTOU	 22,22,27    Stop    tty output for background process
+
+       The signals SIGKILL and SIGSTOP cannot be caught, blocked, or  ignored.
+
+       Next the signals not in the POSIX.1 standard but described in SUSv2 and
+       SUSv3 / POSIX 1003.1-2001.
+
+       Signal	    Value     Action   Comment
+
+       -------------------------------------------------------------------------
+       SIGBUS	   10,7,10     Core    Bus error (bad memory access)
+       SIGPOLL		       Term    Pollable event (Sys V). Synonym of SIGIO
+       SIGPROF	   27,27,29    Term    Profiling timer expired
+       SIGSYS	   12,-,12     Core    Bad argument to routine (SVID)
+       SIGTRAP	      5        Core    Trace/breakpoint trap
+       SIGURG	   16,23,21    Ign     Urgent condition on socket (4.2 BSD)
+       SIGVTALRM   26,26,28    Term    Virtual alarm clock (4.2 BSD)
+       SIGXCPU	   24,24,30    Core    CPU time limit exceeded (4.2 BSD)
+       SIGXFSZ	   25,25,31    Core    File size limit exceeded (4.2 BSD)
+
+       Up to and including Linux 2.2, the default behaviour for SIGSYS,  SIGX-
+       CPU,  SIGXFSZ,  and (on architectures other than SPARC and MIPS) SIGBUS
+       was to terminate the process (without a core  dump).   (On  some  other
+       Unices  the  default action for SIGXCPU and SIGXFSZ is to terminate the
+       process without	a  core  dump.)   Linux  2.4  conforms	to  the  POSIX
+       1003.1-2001  requirements  for  these  signals, terminating the process
+       with a core dump.
+
+       Next various other signals.
+
+       Signal	    Value     Action   Comment
+       --------------------------------------------------------------------
+       SIGIOT	      6        Core    IOT trap. A synonym for SIGABRT
+       SIGEMT	    7,-,7      Term
+       SIGSTKFLT    -,16,-     Term    Stack fault on coprocessor (unused)
+       SIGIO	   23,29,22    Term    I/O now possible (4.2 BSD)
+       SIGCLD	    -,-,18     Ign     A synonym for SIGCHLD
+       SIGPWR	   29,30,19    Term    Power failure (System V)
+       SIGINFO	    29,-,-	       A synonym for SIGPWR
+       SIGLOST	    -,-,-      Term    File lock lost
+       SIGWINCH    28,28,20    Ign     Window resize signal (4.3 BSD, Sun)
+       SIGUNUSED    -,31,-     Term    Unused signal (will be SIGSYS)
+
+       (Signal 29 is SIGINFO / SIGPWR on an alpha but SIGLOST on a sparc.)
+
+       SIGEMT is not specified in POSIX 1003.1-2001, but nevertheless  appears
+       on  most  other Unices, where its default action is typically to termi-
+       nate the process with a core dump.
+
+       SIGPWR (which is not  specified	in  POSIX  1003.1-2001)  is  typically
+       ignored by default on those other Unices where it appears.
+
+       SIGIO  (which  is  not  specified  in  POSIX 1003.1-2001) is ignored by
+       default on several other Unices.
+
+   Real-time Signals
+       Linux supports real-time signals as originally defined in  the  POSIX.4
+       real-time  extensions  (and  now included in POSIX 1003.1-2001).  Linux
+       supports 32 real-time  signals,	numbered  from	32  (SIGRTMIN)	to  63
+       (SIGRTMAX).   (Programs	should always refer to real-time signals using
+       notation SIGRTMIN+n, since the range of real-time signal numbers varies
+       across Unices.)
+
+       Unlike standard signals, real-time signals have no predefined meanings:
+       the entire set of real-time signals can be used for application-defined
+       purposes.   (Note,  however,  that the LinuxThreads implementation uses
+       the first three real-time signals.)
+
+       The default action for an unhandled real-time signal  is  to  terminate
+       the receiving process.
+
+       Real-time signals are distinguished by the following:
+
+       1.  Multiple  instances	of  real-time  signals can be queued.  By con-
+	   trast, if multiple instances of a  standard	signal	are  delivered
+	   while  that	signal is currently blocked, then only one instance is
+	   queued.
+
+       2.  If the signal is sent  using  sigqueue(2),  an  accompanying  value
+	   (either  an	integer or a pointer) can be sent with the signal.  If
+	   the receiving process establishes a handler for this  signal  using
+	   the	SA_SIGINFO  flag  to sigaction(2) then it can obtain this data
+	   via the si_value field of the siginfo_t  structure  passed  as  the
+	   second argument to the handler.  Furthermore, the si_pid and si_uid
+	   fields of this structure can be used to obtain  the	PID  and  real
+	   user ID of the process sending the signal.
+
+       3.  Real-time  signals  are  delivered in a guaranteed order.  Multiple
+	   real-time signals of the same type are delivered in the order  they
+	   were  sent.	 If different real-time signals are sent to a process,
+	   they  are  delivered  starting  with  the  lowest-numbered  signal.
+	   (I.e., low-numbered signals have highest priority.)
+
+       If both standard and real-time signals are pending for a process, POSIX
+       leaves it unspecified which is delivered first.	Linux, like many other
+       implementations, gives priority to standard signals in this case.
+
+       According   to	POSIX,	 an  implementation  should  permit  at  least
+       _POSIX_SIGQUEUE_MAX (32) real-time signals to be queued to  a  process.
+       However, Linux does things differently.	In kernels up to and including
+       2.6.7, Linux imposes a system-wide limit on the number of queued  real-
+       time  signals  for  all	processes.  This limit can be viewed and (with
+       privilege) changed via the /proc/sys/kernel/rtsig-max file.  A  related
+       file, /proc/sys/kernel/rtsig-nr, can be used to find out how many real-
+       time signals are currently queued.  In Linux 2.6.8, these /proc	inter-
+       faces  were  replaced  by  the  RLIMIT_SIGPENDING resource limit, which
+       specifies a per-user limit for queued  signals;	see  setrlimit(2) for
+       further details.
+
+<h4>CONFORMING TO</h4>
+       POSIX.1
+
+<h4>BUGS</h4>
+       SIGIO  and SIGLOST have the same value.	The latter is commented out in
+       the kernel source, but the build process of some software still	thinks
+       that signal 29 is SIGLOST.
+
+<h4>SEE ALSO</h4>
+       kill(1), kill(2), settimer(2), setrlimit(2), sigaction(2), signal(2),
+       sigpending(2), sigprocmask(2), sigqueue(2)
+
+Linux 2.4.18			  2002-06-13			     SIGNAL(7)
+</pre>
+
+
+      </div>
+      <div id="sidebar">
+        <h2>About</h2>
+        <p>
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
+        </p>
+        <p>
+          You should follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>.
+        </p>
+	<h2>Inside</h2>
+	<ul>
+          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
+	</ul>
+       <ul>
+          <li>
+       <!--Ad Bard advertisement snippet, begin -->
+       <script type='text/javascript'>
+          var ab_h = '65997c9b7b5981e3cf2ebec769eea096';
+          var ab_s = '7a46f7b695d2481693fe4724f778884a';
+       </script>
+       <script type='text/javascript' src='http://cdn1.adbard.net/js/ab1.js'></script>
+       <!--Ad Bard, end -->
+          </li>
+       </ul>
+
+        <h2>Syndicate</h2>
+        <ul>
+          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
+        </ul>
+        <h2>Archives</h2>
+        <ul>
+        
+        <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (2)">January 2009 (2)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer">
+       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
+    </div>
+  </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-354660-9");
+pageTracker._trackPageview();
+</script>
+</body>
+</html>

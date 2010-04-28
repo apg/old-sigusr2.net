@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta name="ROBOTS" content="all" />
+    <meta name="googlebot" content="noodp" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="Andrew Gwozdziewycz" />
+    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
+    <link rel="shortcut icon" href="/favicon.ico" />        
+
+    <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
+    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
+    <title>SIGUSR2 
+ &gt; The Hacker&#39;s Utility Belt: SSH
+</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
+    </div>
+    <div id="content-wrapper" class="clearfix">
+      <div id="content">
+        
+<h2>The Hacker&#39;s Utility Belt: SSH</h2>
+<h4>May 07, 2009 <span class="permalink"><a href="/2009/May/07/hacker-utility-belt-ssh.html" title="permalink">#</a></span></h4>
+<p><span class="preamble">Most hackers<a href="#f1">[1]</a> aren't <a href="http://en.wikipedia.org/wiki/Batman">Batman</a>, but aside from <a href="http://en.wikipedia.org/wiki/Batman%27s_utility_belt">Batman's utility belt</a>, the Batcave and Alfred, he's no different than you and me.</span></p>
+
+<p>He's got strength and training on his side, but I could probably take him if he didn't have his belt and was blindfolded. Give him his utility belt though, and I'd be doomed. That's not because his belt has super powers&mdash;instead his belt contains tools that are useful in common situations of distress, and of course detective work. The Bat-grappling hook for instance allows him to scale buildings and walls, and tranquillizer darts allow him to temporarily disable a foe. Batarangs, with practice, can be used to disable an opponent by aiming for a body part, or to cut down a hanging chandelier, creating yet another obstacle for foes to fight through.</p>
+
+<p>Hackers have similar tools, but we carry them in "/usr/bin/" (though how cool would it have been if the <a href="http://en.wikipedia.org/wiki/Unix">Bell Labs folks</a> named it "/usr/belt/" instead). The tools <em>we</em> use, generally allow us to solve problems quickly and efficiently&mdash;just like Batman.</p>
+
+<p>The tool that I've come to rely on quite a bit recently is <a href="http://en.wikipedia.org/wiki/Secure_Shell">SSH</a>. Most hackers use SSH for working remotely on servers, and for copying files over <a href="http://en.wikipedia.org/wiki/Secure_copy">SCP</a> or <a href="http://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol">SFTP</a>. Some may even use <a href="http://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a> and <a href="http://en.wikipedia.org/wiki/SSHFS">SSHFS</a> to mount file systems over SSH. Its potential uses are endless, but the most useful uses for me lately have been tunneling and <a href="http://en.wikipedia.org/wiki/SOCKS">SOCKS</a> proxies.</p>
+
+<h3>Tunneling</h3>
+<p>As a programmer who on occasion works from home (more so currently), it's often a battle to connect to all of the company resources I need in order to perform my job. Firewalls are good things, and are configurable to allow remote people access to walled gardens, but with dynamic <a href="http://en.wikipedia.org/wiki/IP_address" title="Internet Protocol Address">IP addresses</a> being the common norm, opening up resources to many different addresses gets hard for sysadmins to track. Besides, they've got a ton on their plate already.</p>
+
+<p>To combat this problem, <a href="http://en.wikipedia.org/wiki/VPN" title="Virtual Private Network">VPN</a>s were created. Basically, a VPN allows one to connect networks together as if they were local to each other. When I use my companies VPN, it's as if I'm sitting in the office.</p>
+
+<p>Often though, this isn't enough. When dealing with networks that clients own, they may provide us access through only one entry point, a single development server for instance, which is locked down.</p>
+
+<p>This is where SSH comes in handy. In the <a href="http://www.openssh.com/">OpenSSH</a> implementation of the SSH client tools, the <code class="inline">-L</code> option allows one to setup forwarding of traffic to another host. Suppose, I wanted to connect to a client's Oracle server, listening on port 1521:</p>
+
+<code>$ ssh -N -L 9999:clients.oracle.server.name:1521 user@your.companies.host
+</code>
+
+<p>Now instead of pointing our SQL*Plus client to <em>clients.oracle.server.name</em>:1521, we point it to localhost:9999, and traffic is forwarded via <em>your.companies.host</em> as if we were connecting directly from <em>your.companies.host</em>.
+</p>
+
+<p>This is extremely powerful, and simple.<a href="#f2">[2]</a></p>
+
+<h3>SOCKS Proxy</h3>
+
+<p>Similar to the tunnelling example above, OpenSSH can act like a <a href="http://en.wikipedia.org/wiki/SOCKS">SOCKS</a> proxy, allowing you to forward outbound traffic to a trusted source, which will then carry out the request on your behalf. This is <em>great</em> for browsing in public <a href="http://en.wikipedia.org/wiki/Wi-Fi" title="Wireless Fidelity">WI-FI</a> spots where attackers might be sniffing for passwords being sent in plain text over HTTP, or some other unencrypted protocol.<a href="#f3">[3]</a></p>
+
+<p>And, of course, setting it up is as easy as passing the <code class="inline">-D</code> option to ssh when connecting to you@remoteserver.</p>
+
+<code>$ ssh -N -D 8000 user@remoteserver</code>
+
+<p>Then, you can setup your computer (or web browser) to use a SOCKS proxy, and point it to localhost:8000.</p>
+
+<p>This isn't without its problems though. For one, the network could block all outbound traffic except HTTP/HTTPS. One obvious workaround is to have a remote server listening for SSH connections on port 143 or port 80, instead of the protocol default of 22. But, you'll of course need your own box, or <a href="http://en.wikipedia.org/Virtual_private_server" title="Virtual Private Server">VPS</a> for this, as your shared hosting account will probably not allow you to change sshd's listening port.<a href="#f4">[4]</a></p>
+
+<p>Of course, since SSH is a protocol for sending encrypted network traffic, there are <a href="http://www.ssh.com/support/documentation/online/ssh/adminguide/32/X11_Forwarding.html">many</a> <a href="http://unixwiz.net/techtips/ssh-agent-forwarding.html">other</a> uses for it. These are just the two alternatives I find the most useful lately.</p>
+
+<ol class="footnotes">
+<li id="f1">
+I use the <a href="http://www.ccil.org/jargon/jargon_23.html#TAG833">jargon file's</a> definition of hacker, not the commonly confused term <a href="http://www.ccil.org/jargon/jargon_18.html#TAG365">cracker</a>.
+</li>
+
+<li id="f2">
+It can of course get much, much more complicated
+</li>
+
+<li id="f3">
+Unencrypted WIFI traffic is extremely easy to capture, with a tool like <a href="http://www.tcpdump.org">tcpdump</a>
+</li>
+
+<li id="f4">
+The thought of a "loopback" SOCKS proxy, "loopback" tunnel or some combination of the two cannot work, as it would only ever forward traffic to your localhost's sshd, which would then forward traffic to the destination, unencrypted, over the local network&mdash;this is the exact situation we were trying to avoid. Plus, if you're trying to forward traffic in this way, over a port that's being blocked, it's still blocked.
+</li>
+</ol>
+
+
+<h5 class="tag-list">Tagged: 
+  <a href="/tags/ssh.html">ssh</a>
+     , <a href="/tags/tools.html">tools</a>
+     
+</h5>
+
+<div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/sigusr2/embed.js"></script><noscript><a href="http://sigusr2.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </div>
+      <div id="sidebar">
+        <h2>About</h2>
+        <p>
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
+        </p>
+        <p>
+          You should follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>.
+        </p>
+	<h2>Inside</h2>
+	<ul>
+          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
+	</ul>
+       <ul>
+          <li>
+       <!--Ad Bard advertisement snippet, begin -->
+       <script type='text/javascript'>
+          var ab_h = '65997c9b7b5981e3cf2ebec769eea096';
+          var ab_s = '7a46f7b695d2481693fe4724f778884a';
+       </script>
+       <script type='text/javascript' src='http://cdn1.adbard.net/js/ab1.js'></script>
+       <!--Ad Bard, end -->
+          </li>
+       </ul>
+
+        <h2>Syndicate</h2>
+        <ul>
+          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
+        </ul>
+        <h2>Archives</h2>
+        <ul>
+        
+        <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (2)">January 2009 (2)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer">
+       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
+    </div>
+  </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-354660-9");
+pageTracker._trackPageview();
+</script>
+</body>
+</html>

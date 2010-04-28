@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2009-01-08T19:33:52Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Anagrams Predicate</title><link href="/2009/Jan/08/anagrams-predicate.html"/><id>md5:c7c123380fbc5a9934d6d485b0a050aa</id><updated>2009-01-08T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Recently, I spent some time thinking about a simple problem. How do you test if two strings are <a href="http://en.wikipedia.org/wiki/Anagram">anagrams</a> of each other?</span></p>
+
+<p>There are many ways, but the naive solution is to simply sort both strings, character-wise, and then compare the results. In <a href="http://www.python.org">Python</a>, you might do that like so (We'll leave out the fact that anagrams are actually real words and phrases. We also work in a case-sensitive manor [e.g. "JimMorrison" and "MrMojoRisin" isn't truthy, though a simple <code class="inline">s.lower()</code> goes a long way.]):</p>
+
+<code class="python">def isAnagram(str1, str2):
+    if len(str1) != len(str2): return False
+    return sorted(str1) == sorted(str2)
+</code>
+
+<p>Here, I'm using <code class="inline">sorted</code>, a Python <code class="inline">__builtin__</code>, that takes an iterable and produces a sorted list of that iterable. I'm then taking advantage of the fact that Python lists can be compared element-wise with the <code class="inline">==</code> operator. Doing this produces a function that will work on any string, and it's simple to see why. Sort the string "parental" and you get "aaelnprt." Sort the string "paternal" and you still get "aaelnprt." Obviously "aaelnprt" and "aaelnprt" are equivalent. This of course returns <code class="inline">False</code> for the strings "snowman" and "iceman" since they don't compare sorted equally (or non-sorted for that matter).</p>
+
+<p>However, this solution isn't the most efficient use of resources. For one, most sorting algorithms are only <em>O(n log n)</em>, which means in the best case <code class="inline">isAnagram</code> is too. It also needs to allocate two lists to store the results returned by <code class="inline">sorted</code>.</p>
+
+<p>There is of course a way to do better. You just have to think about the problem for a little longer than a minute:</p>
+
+<code class="python">def isAnagramN(str1, str2):
+    if len(str1) != len(str2): return False
+    counts = defaultdict(lambda: [0, 0])
+
+    for c1, c2 in izip(str1, str2):
+        counts[c1][0] += 1
+        counts[c2][1] += 1
+
+    for k, v in counts.iteritems():
+        if v[0] != v[1]:
+            return False
+    return True
+</code>
+
+<p>This code does not allocate proportionally to the size of the strings, but instead on the diversity of the strings. In other words, <code class="inline">isAnagramN("aaaaaaa", "bbbbbbb")</code> allocates 1 defaultdict, and 2 lists of size 2. Why? Because, the algorithm simply counts up how many times each letter occurs in each string. Of course Python also has to allocate the generators to use for <code class="inline">izip</code> and <code class="inline">counts.iteritems()</code>, but that isn't significant. The big win here of course is that given strings of <em>any</em> length, the algorithm uses only as much space as the diversity of the contents contained in the strings!</p>
+
+<p>As if that wasn't a win enough, this algorithm runs in <em>O(n)</em> on the length of the strings!</p>
+
+<p>But, does it actually make a difference? The answer of course is yes. For strings of significant length, <code class="inline">isAnagramN</code> runs almost 2x as fast as <code class="inline">isAnagram</code>.</p>
+
+<p>The proof is in the bacon, so let's take a look at some numbers. Using Python's <code class="inline">timeit</code> module, I tested strings of length 1 through 100,001, incrementing by 10,000 (I've tested other lengths as well, and reach a similar conclusion). At each length, the test was repeated 50 times. The results are below:</p>
+
+<style type="text/css">
+td { text-align: right; }
+td.win { background-color: #ADFF2F; font-weight: bold;}
+td.first { background: #dddddd; font-weight: bold; color: #222222; }
+</style>
+
+<table cellspacing="5" style="margin: 0 auto;">
+  <thead>
+    <tr>
+    <th>Length</th>
+    <th>Time isAnagram</th>
+    <th>Time isAnagramN</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+     <td class="first">1</td><td class="win">0.00043511390686</td><td>0.000530958175659</td>
+     </tr>
+     <tr>
+     <td class="first">10001</td><td>0.657309055328</td><td class="win">0.38395690918</td>
+     </tr>
+     <tr>
+     <td class="first">20001</td><td>1.25437283516</td><td class="win">0.793761968613</td>
+     </tr>
+     <tr>
+     <td class="first">30001</td><td>1.91431283951</td><td class="win">1.15374517441</td>
+     </tr>
+     <tr>
+     <td class="first">40001</td><td>2.55181908607</td><td class="win">1.53560996056</td>
+     </tr>
+     <tr>
+     <td class="first">50001</td><td>3.14615797997</td><td class="win">2.07976388931</td>
+     </tr>
+     <tr>
+     <td class="first">60001</td><td>3.76745486259</td><td class="win">2.30041193962</td>
+     </tr>
+     <tr>
+     <td class="first">70001</td><td>4.48913788795</td><td class="win">2.81828999519</td>
+     </tr>
+     <tr>
+     <td class="first">80001</td><td>5.155148983</td><td class="win">3.09482097626</td>
+     </tr>
+     <tr>
+     <td class="first">90001</td><td>5.67185592651</td><td class="win">3.477850914</td>
+     </tr>
+     <tr>
+     <td class="first">100001</td><td>6.33614587784</td><td class="win">3.94285678864</td>
+     </tr>
+  </tbody>
+</table>
+
+<p>
+  Download the code: <a href="http://files.sigusr2.net/anagram.py">anagram.py</a>
+</p>
+]]></content></entry>
+<entry><title>Chocolate Cupcakes</title><link href="/2008/Dec/15/chocolate-cupcakes.html"/><id>md5:3410e6821ebb21b7c929fa42b3144244</id><updated>2008-12-15T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Every now and then, I dust off my copy of <em><a href="http://www.amazon.com/gp/product/0262560992?ie=UTF8&tag=siusdesi2-20&linkCode=as2&camp=1789&creative=9325&creativeASIN=0262560992">The Little Schemer</a><img src="http://www.assoc-amazon.com/e/ir?t=siusdesi2-20&l=as2&o=1&a=0262560992" width="1" height="1" border="0" alt="" style="border:none !important; margin:0px !important;" /></em> and read a few sections. It's a great book, in a unique and friendly format.</span></p>
+
+<p>Part of the reason I pick up the book time and time again is because re-reading sections of it re-enforces the basic concepts that a Scheme programmer needs to know. Now I'm not saying I don't know these basic concepts, because I do, but my daily routine unfortunately does not involve Scheme. Instead, I spend my time not recursing on <code class="inline">cdr</code>s but using <a href="http://en.wikipedia.org/wiki/Imperative_programming" title="Imperative Programming">imperative</a> style looping constructs.</p>
+
+<p>And, since I like to make my own junk food, it's the perfect book since it leaves pages for jelly stains and provides a chocolate chip cookie recipe. I thought it'd be nice to share my new favorite cupcake recipe, with peppermint icing&mdash;just in time for the holidays. I've stolen <a href="http://www.cs.indiana.edu/~dfried/">Friedman</a> and <a href="http://www.ccs.neu.edu/home/matthias/">Felleisen</a>'s recipe format:</p>
+
+<pre><code class="scheme">
+(define (chocolate-cupcakes)
+  (bake '(375 degree) '(20 minute)
+        (mix (mix '(sugar 1 cup)
+                  '(flour 3/2 cup)
+                  '(baking-soda 1 teaspoon)
+                  '(cocoa 1/3 cup)
+                  '(apple-sauce 1/2 cup)
+                  '(cold-water 1 cup)
+                  '(vanilla 2 teaspoon)
+                  '(salt 1/2 teaspoon))
+             '(vinegar 2 tablespoon))))
+
+(define (peppermint-icing)
+  (mix '(butter 1/2 cup)
+       '(powdered-sugar 2 cup)
+       '(vanilla 1 teaspoon)
+       '(peppermint-extract 2 teaspoon)
+       '(milk 3 tablespoon)))
+</code></pre>
+
+<p>Enjoy!</p>]]></content></entry>
+<entry><title>Python Type Constructors a la OCaml</title><link href="/2008/Sep/30/python-type-constructors-like-ocaml.html"/><id>md5:5c9d3c4e3c5a50bf32b5481935fde949</id><updated>2008-09-30T07:00:00Z</updated><content type="html"><![CDATA[<p>
+<span class="preamble">Earlier this summer, I started taking a look at the <a href="http://caml.inria.fr/" title="Objective-Caml">OCaml</a> programming language in anticipation of the compilers class I'm taking this fall.</span>
+</p>
+
+<p>OCaml is a strongly, <a href="http://en.wikipedia.org/wiki/Type_system#Static_typing">statically typed</a>, functional language with <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>. It's pretty neat, and supports imperative programming as well as object-oriented constructs for when you need them. As a language, I've found few things wrong with it, except for the edit-compile-run cycle (I prefer the edit-run cycle you get in a language like Scheme, or even Python), but OCaml does actually have a toplevel (the toplevel isn't crippled either, but it doesn't seem realistic to not compile for testing, at least I haven't yet found it to be). 
+</p>
+
+<p>Anyway, among all the amazing features of OCaml, the two that stand out as being the most useful are pattern matching (on types) and the simplicity of defining new types and creating constructors:</p>
+
+<pre><code class="ocaml">type astnode = 
+| AndNode of astnode * astnode
+| OrNode of astnode * astnode
+| NotNode of astnode 
+| IdNode of bool
+
+let rec eval_node (n: astnode) = 
+  match n with
+  | AndNode (l, r) -> (eval_node l) && (eval_node r)
+  | OrNode (l, r) -> (eval_node l) || (eval_node r)
+  | NotNode l -> not (eval_node l)
+  | IdNode v -> v
+
+eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
+</code></pre>
+
+<p>Of course, the type annotation, <code class="inline">(n: astnode)</code>, is optional due to the type inference engine, but the above example shows a simple example type that might be used when defining a language to do boolean arithmetic. It's quick to see that the combination of type constructors (like the <code class="inline">IdNode</code> above) and pattern matching simplify this incredibly.
+</p>
+
+<p>But, we don't get this sort of coolness in Python. No, in Python, we can make classes, but we do not get type checking of any kind, unless of course we do it at runtime manually. That's because Python is <a href="http://en.wikipedia.org/wiki/Type_system#Dynamic_typing">dynamically typed</a>.</p>
+
+<p>On the other hand, if we <em>really</em> want to, we can use the built in functions <code class="inline">isinstance</code> and <code class="inline">type</code> to raise errors when incompatible types are passed along to functions. This is slow, but it works. And, in some cases, like the one I'm about to show, maybe it doesn't matter, if you get certain benefits.</p>
+
+<p>Consider a language, like before, that does boolean arithmetic. It'll support boolean <abbr title="Both true">AND</a> (&amp;), <abbr title="One or the other true">OR</abbr> (|), <abbr title="One or the other true, but not both">XOR</abbr> (^) and NOT (!). A valid expression in this language is of the form <code class="inline">t & !(f | t)</code> which evaluates to <code class="inline">false</code>.</p>
+
+<p>I've created two different parsers for this language. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bptuples.py" rel="nofollow">bptuples</a>, I create an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree" title="Abstract Syntax Tree">AST</a> using Python tuples of the form <code class="inline">('AndNode', t, f)</code>. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bpnodes.py" rel="nofollow">bpnodes</a>, however, I take a more elegant approach when building the <abbr title="Abstract Syntax Tree">AST</abbr>&mdash;I create "OCaml like" type constructors.</p>
+
+<pre><code class="python">
+ASTNode = deftype('ASTNode', ())
+AndNode = deftype('AndNode', (ASTNode, ASTNode,), ASTNode)
+OrNode = deftype('OrNode', (ASTNode, ASTNode,), ASTNode)
+XorNode = deftype('XorNode', (ASTNode, ASTNode,), ASTNode)
+NotNode = deftype('NotNode', (ASTNode,), ASTNode)
+IdNode = deftype('IdNode', (bool,), ASTNode)
+</code></pre>
+
+<p>This defines all the Python classes needed at runtime. <code class="inline">deftype</code> takes up to 3 arguments. The first argument is the name of the class, the second is a tuple of classes which it can accept as arguments, and the optional third argument is a parent class to inherit from. The optional third argument is only necessary if you need multiple constructors for the same type, as in the case of our OCaml example above, and this example here.</p>
+
+<p>The code for <code class="inline">deftype</code> is actually pretty simple:</p>
+
+<pre><code class="python">
+def deftype(name, types, extends=None):
+    class _dtype(object):
+        def __init__(self, *args):
+            for i, a in enumerate(zip(args, self.types)):
+                if isinstance(a[0], a[1]):
+                    self.__setattr__('op%d' % i, a[0])
+                else:
+                    raise TypeError("%s expected argument of type " % \
+                                        (self.__class__.__name__,
+                                         str(a[1])))
+    if extends:
+        parents = (_dtype, extends,)
+    else:
+        parents = (_dtype,)
+    return type(name, parents, {'types': types})
+</code></pre>
+
+<p>Basically, what it does is use the Python built-in <code class="inline">type</code> to construct a class at runtime with an attribute called <code class="inline">types</code> which holds the class names of the expected arguments to the constructor of the type. On construction, the arguments are enumerated and attributes are created of the form <code class="inline">op0</code>...<code class="inline">opN</code>.</p>
+
+<p>It's a mouthful, for sure, but all that means is that when we construct a new <code class="inline">AndNode</code>, we are sure that the arguments the instance was created with are indeed <code class="inline">ASTNode</code>s, and those nodes are accessible at <code class="inline">op0</code> and <code class="inline">op1</code>.</p>
+
+<p>At a cursory glance, you might be thinking, "but what does this actually do for us?" Well, honestly, not much, but you do get to abstract out some more runtime type checking and do dynamic dispatch with the help of some Python decorators. Observe:</p>
+
+<pre><code class="python">
+@multimethod(AndNode)
+def interpret(ast):
+    return interpret(ast.op0) and interpret(ast.op1)
+
+@multimethod(XorNode)
+def interpret(ast):
+    left = interpret(ast.op0)
+    right = interpret(ast.op1)
+    return (left or right) and not (left and right)
+
+@multimethod(OrNode)
+def interpret(ast):
+    return interpret(ast.op0) or interpret(ast.op1)
+
+@multimethod(NotNode)
+def interpret(ast):
+    return not interpret(ast.op0)
+
+@multimethod(IdNode)
+def interpret(ast):
+    return ast.op0
+</code></pre>
+
+<p>That's the entire interpreter to walk the AST and evaluate boolean expressions, and is called via <code class="inline">interpret(parseBool(tokenizer('t & ! (t | f)')))</code>.</p>
+
+<p>In the tuple version, it's actually shorter when you use <code class="inline">if</code> statements, but this approach is much more readable in my opinion. The <a href="http://www.artima.com/weblogs/viewpost.jsp?thread=101605">multimethod decorator</a> runs the correct <code class="inline">interpret</code> based on the types of arguments.</p>
+
+<p> This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</p>
+
+
+]]></content></entry>
+<entry><title>The Failure of Bayesian Filtering For Automated Screening of Med School Applications</title><link href="/2008/Sep/18/bayesian-failure.html"/><id>md5:f10c2840e1d10debae66e6dfe782f90e</id><updated>2008-09-18T22:20:00Z</updated><content type="html"><![CDATA[<p>
+<span class="preamble">OK, I'll admit it. I <em>failed</em>. I failed to apply a simple Bayes net to a simple problem, which humans can do with a little bit of reading and some coffee.</span>
+</p>
+
+<p>At my place of employment, we have a problem. Our solutions to this problem, right now, relies too much on time consuming human interaction and, certainly, too much on the knowledge gained from history. The problem is that of a multitude of pre-med students hoping to be granted the opportunity to come here for an interview regarding admission into the world renouned medical school. </p>
+
+<p>It'd be both impractical and impossible to interview everyone, so there exists a rigorous screening process before interview decisions are made. We have some tools that automatically look through an application and parameterise it for easier searching. We also have some tools that automatically weed out applications that have extremely low <abbr title="Medical College Admission Test">MCAT</abbr>s and <abbr title="Grade Point Average">GPA</abbr>s. By and large, these processes get the number of applications the screening team must thoroughly inspect down to a manageable number of very competitive candidates, but the number is still too large.</p>
+
+<p>Now, immediately you must be thinking, <q>Why can't they just change the parameters to eliminate more people?</q> And the answer is that we could, but what the screeners look for isn't just numeric. The screeners are looking at many different aspects of the candidates past. Many of the students accepted to the school weren't the top students in their class. They certainly weren't horrible students academically, but they had diverse experiences in school, or otherwise, that the professors of the school felt qualified them as being an outstanding addition to this premier institution.</p>
+
+<p>As a programmmer, I see this as a fun and interesting challenge. A challenge where I can apply some "computer sciency" things to add just a touch of intelligence to the automated process and filter out those candidates that maybe are not as "rock star" as they appear in numbers. My first though was to use a <a href="http://en.wikipedia.org/wiki/Naive_Bayes_classifier" title="Naive Bayes on WikiPedia">Naive Bayes classifier</a>.</p>
+
+<p>A medical school applicant writes a lot. <a href="http://www.aamc.org" title="American Medical College Application Service">AMCAS</a> asks of students to submit information on past experiences (e.g. research, personal, travel, professional, community service), and for information about publications they've (co)authored, and a personal statement. In addition, applicants submit some other free form text to us directly. This data seems like a natural fit for training a classifier.</p>
+
+<p>So, I go with it; I mention to my project manager that it might be possible to probabalistically predict the scores generated from the manual, time consuming screening process, using historic applicant entered data as a training corpus. As his eyes lit up, I explained the basic idea of a Naive Bayes classifier and said, <q>it's the basis of many SPAM filters.</q> This was enough to sell it to him, and to our immediate client, the Admissions office. I now had permission to play around and see how well I could predict the past.</p>
+
+<p>From the database, I pulled out as much data as I possible could and build two buckets; successful and unsuccessful. Successful candidates had the property that they were all likely invited for interviews, and well unsuccessful weren't. I tried to make it roughly even, taking as many of the least successful candidates as I could to match as closely as possible to the number of successful candidates. I proceeded to write a basic Naive Bayes classifier, made it general enough that I could add and subtract some ideas easily, and setup a simple cross validation. I was set.</p>
+
+<p>I couldn't have been more excited to see things pass the screen like:</p>
+
+<pre><code>Run 0 -------------
+Good: S 57 / F 17 = 0.773333
+Bad: S 22 / F 49 = 0.319444
+Run 1 -------------
+Good: S 71 / F 3 = 0.960000
+Bad: S 8 / F 63 = 0.125000
+Run 2 -------------
+Good: S 70 / F 4 = 0.946667
+Bad: S 13 / F 58 = 0.194444
+Run 3 -------------
+Good: S 61 / F 13 = 0.826667
+Bad: S 12 / F 59 = 0.180556</code></pre>
+
+<p>But the results didn't look good to me. The first line "Good: ... " states that of the 74 attempts at classifying a known "successful" candidate only 57 were predicted correctly. Even worse, only 22 of the "unsuccessful" candidates were predicted successfully. Surely, this could be fixed, I thought. It's simply a matter of doing better smoothing, and eliminating the common words with high frequencies. </p>
+
+<p>Still nothing. Stem the words? Worse. Eliminate more words? Worse. Smoothing? No better. Discouragement sets in.</p>
+
+<p>I look into it a bit further and discover something interesting. All these essays, all these experiences sound exactly the same! They all talk about community service and late nights in the research labs. They all discuss the fact that for as long as they can remember they've wanted to become physicians. It's as if all the candidates are the same person.</p>
+
+<p>They aren't. Unlike a note from my wife and an offer for viagra or cialis, their goals are the same, and their language is in the same domain.</p>
+
+<p>Seems like I need another idea.</p>
+]]></content></entry>
+<entry><title>Announcing the Return of Modest</title><link href="/2008/Sep/08/announcing-modest.html"/><id>md5:46bc9058d3455dcb80e42e14e83535bd</id><updated>2008-09-08T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">As a programmer, I pride myself in being lazy. This might at first seem like a horrible thing to take pride in but hear me out.</span></p>
+
+<p>Let me give you an example related to my day job. Two weeks ago I was given a CSV file containing 2000+ rows with the header row of <code class="inline">original_request_id,request_id,first_name,last_name,amount,status_cd</code>. Inside was a list of credit card transactions that were taken from development and migrated to the production credit card processor. But, as luck would have it some credit credit cards had expired, had insufficient funds, or were just flat out denied when the charge authorization was requested during this migration. </p>
+
+<p>So, obviously, someone had to go through and filter through this CSV file, find the entries that had succeeded and make note that the user was paid up in full. Additionally, we needed to filter the failed results, find the user and tell them there was a problem with their payment. In other words, we needed 2 lists&mdash;payees and repayors. </p>
+
+<p>At this point I knew I had a few choices. I could fire up GNU Emacs, run <code class="inline">M-x keep-lines</code>, save the buffer, undo and then run <code class="inline">M-x flush-lines</code>, save and have two lists. Then of course, I'd have to spend the afternoon looking up everyone in the list and recording the proper data changes.</p>
+
+<p>The other option would be to be lazy and write about 5 lines of Python and turn the 2000+ row CSV file into 2 SQL queries, which Oracle would happily run for me. The work it takes to craft the 5 lines, would almost certainly be less work than the manual labor.</p>
+
+<p>Naturally, as the first sentence suggests I choose the second option.</p>
+
+<pre><code class="python">
+lines = open('records.csv').readlines()[1:]
+payors = [x.split(',')[0] for x in lines if '(Accept)' in x]
+repays = [x.split(',')[0] for x in lines if '(Failure)' in x]
+print "UPDATE PAID SET paid = 1 WHERE pid IN (select pid from TRANS WHERE rid IN ('%s');" % ','.join(["'" + i + "'" for i in payors])
+print "UPDATE PAID SET paid = 0 WHERE pid IN (select pid from TRANS WHERE rid IN ('%s');" % ','.join(["'" + i + "'" for i in repays])
+</code></pre>
+
+<p>But, you gotta ask yourself, "is this laziness?"</p>
+
+<h3>What Does This Have to Do With Modest?</h3>
+
+<p>There's a concern I have with some types of software where more work is being done than is really necessary. The definitive example is of course blogs.
+</p>
+
+<p>Back in the early days of blogs, the writer was tasked at creating a new static page (probably from a template) and hand crafting the HTML that made up the new post. If the blog had comments, they might include a file using <abbr title="Server Side Includes">SSI</abbr> to display the comments, and the CGI script that processed comments would do nothing more than write the comment to the file included. And even when the first blog "engines" came out, which automated the tedious process of copying the template and hand assembling the new page and all of the indexes, they were just a series of forms and CGI scripts that took the values of some form fields and generated the static HTML files for you.
+</p>
+
+<p>But somewhere along the lines, the process of compiling a blog was over engineered. Writers felt that their posts needed to be <abbr title="Just in Time">JIT</abbr> compiled, which required that blogs actually serve dynamic HTML rather than just serving a static file. Suddenly, storing posts in databases became the norm, which resulted in high loads on servers when sites like <a href="http://slashdot.org/">Slashdot</a> published a link to your site on their homepage.</p>
+
+<p>The Slashdot Effect, as it became known, resulted in many things like the community mirroring of sites, and eventually, public <abbr title="Content Distribution Networks">CDN</abbr>s started popping up like <a href="http://www.coralcdn.org/">Coral Cache</a> to mirror the site automatically. This is mostly unnecessary when you consider the fact that had blogs not been so reliant on a database backend, servers could have withstood a much higher load, and stood up by themselves under many situations.</p>
+
+<p>In fact, the first thing that most shared hosting companies will do in the event of the Slashdot Effect, or Digg Effect, seems to be to take a static snapshot of the page and serve that.</p>
+
+<p>Modest cuts out the middle man. Everything is served as static HTML, because I believe that JIT compiling blog engines do too much work. Modest doesn't require a database, doesn't generate content on the fly, but with a little luck, some time and a little ingenuity, I feel that it will become as full featured a blog engine as you can get for command line use. </p>
+
+<h3>Return?</h3>
+
+<p>A few years ago, I wrote an initial version of Modest, in Python, which generated static HTML from simple text files. It worked fairly well, but wasn't flexible. The date of the post was based on the files <code class="inline">ctime</code>, and there was no way to really add metadata to the post. This worked fine, but in some cases (e.g. <code class="inline">cp post.txt post.txt.bak</code>) you simply loose the date information. The quick fix I came up with was to cache the <code class="inline">ctime</code> in another file, which was just a mess. And of course, this only solved storing one piece of metadata.</p>
+
+<p>The new version of Modest, which will be released for public consumption very soon, had unlimited metadata potential, because the entry actually contains a spot for it. Each post is defined simply by doing:</p>
+
+<pre><code>
+Title: Some Post
+Date: 2008-10-10 10:10:32
+Tags: something, strange, neighborhood, ghostbusters
+Published: True
+UnknownMetaData1: gets converted to a string
+UnknownMetaData2: False
+---
+Post body goes here, but note&mdash;the Date field becomes a Python datetime, 
+and Published becomes a Python boolean True. These values become available 
+in the template's context. 
+</code></pre>
+
+<p>Because those variables become available in the template's context, interesting things can now occur. Suddenly you can, without changing your database schema, make certain posts behave differently, just by including a bit more metadata and adding the appropriate logic to your templates. It's not very <abbr title="Model-View-Controller">MVC</abbr>, but who cares about that? The point is, you get flexibility for free, and flexibility is another part of being lazy. This all happens to tie into another project, but we're out of time for now. Look for more of Modest soon.
+</p>
+
+]]></content></entry>
+
+</feed>

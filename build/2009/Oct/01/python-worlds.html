@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta name="ROBOTS" content="all" />
+    <meta name="googlebot" content="noodp" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="Andrew Gwozdziewycz" />
+    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
+    <link rel="shortcut icon" href="/favicon.ico" />        
+
+    <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
+    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
+    <title>SIGUSR2 
+ &gt; Python Worlds
+</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
+    </div>
+    <div id="content-wrapper" class="clearfix">
+      <div id="content">
+        
+<h2>Python Worlds</h2>
+<h4>October 01, 2009 <span class="permalink"><a href="/2009/Oct/01/python-worlds.html" title="permalink">#</a></span></h4>
+<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
+
+<p>Worlds allow you to capture the current scope of a program in a first-class way. All updates to the current state (i.e. local variables, global variables) happen in a non-commiting way. In other words, you can back out of any changes at any time.</p>
+
+<p>Consider the following example (taken from the <a href="http://www.vpri.org/pdf/rn2008001_worlds.pdf">Warth paper</a>):</p>
+
+<pre><code class="javascript">A = thisWorld; // thisWorld is always the current world
+r = new Rectangle(4, 6);
+
+B = A.sprout(); // sprout creates a new world with it's parent set to A
+in B { r.h = 3; } // side effects within this `in' occur only in the world B.
+
+C = A.sprout();
+in C { r.h = 7 }; // in A's world r.h = 6 still.
+
+C.commit(); // only now does r.h = 7 in world A.
+</code></pre>
+
+<p>If you follow along in the comments I've appended to the example, you'll start to see why this idea is interesting, even from this little example.</p>
+
+<p>The astute Scheme programmer, however, will notice almost certainly that this construct could be created with <code class="inline">call/cc</code>, which is certainly true. The problem with this fact is that not all programming languages are Scheme (unfortunately), and of course not all languages support first-class <a href="http://en.wikipedia.org/wiki/Continuation">continuations</a>.</p>
+
+<p>The question I asked myself, however, is this: <q>Can I hack worlds into Python?</q> To which I came up with the short answer after some thinking, <q>sort of.</q>
+
+<p>I guess I should explain what's going on more clearly in the example above. The first thing to note is that <code class="inline">A</code> represents the current scope; the current state of all variables in the program. <q>Sprouting</q> a new world from an existing world means that any changes that occur when using the sprouted world, do not affect the world who sprouted the current world, unless the new world <em>commits</em> the changes made to the original world.</p>
+
+<p>Which is to say, changes that occur in an <code class="inline">in</code> block acting on world <code class="inline">X</code> do not propagate to the parent (the world <code class="inline">X</code> was sprouted from) of <code class="inline">X</code> unless <code class="inline">X.commit()</code> is called.</p>
+
+<h3>Enter Context Managers</h3>
+
+<p>A few months ago, I wrote a blog post about <em><a href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html">Dispatching With "with"</a></em>, in which I explained <a href="http://www.python.org/dev/peps/pep-0343/">context managers</a> in Python, and how they can be exploited to create a less separated mapping from URLs to request handlers (something that definitely has its place in the small web-app world).</p>
+
+<p>The basic idea of this was that in the <code class="inline">__exit__</code> method of the web-application object, the current frame was inspected and references to functions that represent HTTP methods would be collected, stored and tied to the last regular expression passed to the <code class="inline">expose</code> method in the application object. This simple solution allowed us to express a web application succinctly like so:
+
+<pre><code class="python">app = web.application()
+with app.expose('/'):
+   def get(): 
+       return "Hello World"
+app.run()
+</code></pre>
+
+<p>For worlds, I also exploit context managers, though mostly for the <code class="inline">in</code>-like syntax, and for managing the current <code class="inline">thisWorld</code> variable.</p>
+
+<p>The quick<a href="#f1">[1]</a> solution that I came up with for <a href="http://github.com/apgwoz/python-worlds">implementing worlds</a> can be used like so:</p>
+
+<pre><code class="python">with Universe(): # establishes new world, assigns to local variable `thisWorld'
+   thisWorld.r = True # must assign <em>directly</em> in the world. LIMITATION
+   new = thisWorld.sprout() 
+
+   with new:
+       new.r = False
+
+   with new.sprout():
+       thisWorld.r = 15
+       thisWorld.commit() # now new.r is 15, but the original r is still True
+
+   print thisWorld.r # => True
+   new.commit()
+   print thisWorld.r # => 15
+   thisWorld.commit() # have to commit to the actual scope LIMITATION
+   # r is now part of the local variables where this universe exists
+   print r # => 15 
+</code></pre>
+
+<p>Looking at this example, it's already apparent that the Warth implementation of worlds is superior, just in the amount of code needed to take advantage of it. You might also see that I didn't even attempt to port the rectangle example  from above. That is because there isn't anything smart going on under the hood when it comes to container objects (such as lists, tuples, objects, dicts), and I'm not yet sure how to get there.</p>
+
+<p>With simple immutable objects such as booleans, integers and strings, using copy-on-write semantics works wonderfully. Then, on <code class="inline">commit</code> of the world, the code just copies all of the changes into its parent. I haven't tackled the case of mutable container objects just yet, as there are complications in the API<a href="#f2">[2]</a>, as well as the implementation.</p>
+
+<p>The interaction with this is sort of annoying though. In order to take advantage of worlds in Python, you have to touch virtually every line of code in the function you are trying to <q>worldize</q>, because you must assign explicitly to a world. The world's context manager sets up <code class="inline">thisWorld</code> for you, but you still have to do <code class="inline">thisWorld.<em>variable</em></code> to get any sort of benefit.</p>
+
+<p>My inclination is to get into some bytecode hacking to modify all assignments within the <code class="inline">with</code> block to be assignments to <code class="inline">thisWorld</code> automatically, but bytecode hacks are neither pleasant to maintain, nor are they portable across implementations.</p>
+
+<p>It's also possible in the Warth version to <q>worldize</q> functions and any other first class object. Maybe the solution is simple and I just haven't seen it yet. Whatever hacks, that I come up with though, will be just that, hacks, as there is no <em>easy</em> way to add worlds to Python in the same way that Warth added them to JavaScript<a href="#f3">[3]</a>.</p>
+
+<p>We are in an age of programming where mainstream programming languages are unable to adapt to our needs as programmers. We are unable to bend them at our will like we can with <a href="http://en.wikipedia.org/wiki/Scheme_%28programming_language%29">Scheme</a>, <a href="http://common-lisp.net/">Lisp</a> and even <a href="http://clojure.org/">Clojure</a>. Attempts to bring about change on this front have not been met with enthusiasm from most groups. Whether it's a lack of marketing, evangelism or just that the general population doesn't view <q>unbendability</q> as a problem, I'm not sure. But, I for one like the idea of being able to <em>easily</em> add worlds, and other ideas, as <em>true</em> language features to languages that by practicality, I'm forced into using. That would make me a much happier, and effective programmer.</p>
+
+<ol class="footnotes">
+    <li id="f1">By quick, I do mean quick. This was 2 hours of work and sketching. Surely there is lots of work to be done to make it a true solution.</li>
+    <li id="f2">The same strategy could be used as for simple values like booleans, if the API used a method, say <code class="inline">assign</code> instead of the more natural assignment operator. Consider, <code class="inline">thisWorld.assign('obj.height.inches', 30)</code> vs. <code class="inline">thisWorld.obj.height.inches = 30</code>.</li>
+    <li id="f3">The Worlds prototype was written in <a href="http://tinlizzie.org/ometa/">OMeta</a>, which is a solution to the "unbendable" languages problem. Note: I didn't attempt to write worlds in PyMeta, but, it may be possible to do.</li>
+</ol>
+
+
+<h5 class="tag-list">Tagged: 
+  <a href="/tags/worlds.html">worlds</a>
+     , <a href="/tags/python.html">python</a>
+     
+</h5>
+
+<div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/sigusr2/embed.js"></script><noscript><a href="http://sigusr2.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </div>
+      <div id="sidebar">
+        <h2>About</h2>
+        <p>
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
+        </p>
+        <p>
+          You should follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>.
+        </p>
+	<h2>Inside</h2>
+	<ul>
+          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
+	</ul>
+       <ul>
+          <li>
+       <!--Ad Bard advertisement snippet, begin -->
+       <script type='text/javascript'>
+          var ab_h = '65997c9b7b5981e3cf2ebec769eea096';
+          var ab_s = '7a46f7b695d2481693fe4724f778884a';
+       </script>
+       <script type='text/javascript' src='http://cdn1.adbard.net/js/ab1.js'></script>
+       <!--Ad Bard, end -->
+          </li>
+       </ul>
+
+        <h2>Syndicate</h2>
+        <ul>
+          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
+        </ul>
+        <h2>Archives</h2>
+        <ul>
+        
+        <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (2)">January 2009 (2)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer">
+       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
+    </div>
+  </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-354660-9");
+pageTracker._trackPageview();
+</script>
+</body>
+</html>

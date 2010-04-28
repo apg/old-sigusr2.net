@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta name="ROBOTS" content="all" />
+    <meta name="googlebot" content="noodp" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="Andrew Gwozdziewycz" />
+    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
+    <link rel="shortcut icon" href="/favicon.ico" />        
+
+    <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
+    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
+    <title>SIGUSR2 
+ &gt; Remote Objects
+</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
+    </div>
+    <div id="content-wrapper" class="clearfix">
+      <div id="content">
+        
+<h2>Remote Objects</h2>
+<h4>November 20, 2009 <span class="permalink"><a href="/2009/Nov/20/remote-objects.html" title="permalink">#</a></span></h4>
+<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
+
+<p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
+
+<p>Right away I hit one. The data models for these 2 very different pieces of software are insanely different (who knew?). Roundup makes <em>use of</em> a <a href="http://en.wikipedia.org/wiki/SQL">SQL</a> database, but not in a traditional way. And, activeCollab combines almost all of its entities into one table. This of course makes querying with SQL incredibly difficult, and a SQL to SQL translation close to impossible.</p>
+
+<p>Luckily, in moving to activeCollab, we inherited a somewhat <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">RESTful</a>, API that allows for the modification and creation of entities. As a result, it became apparent that the logical way to migrate this was to pull the data out using the Roundup's libraries and make the appropriate API calls with the translated data.</p>
+
+<p>To make it easy on myself, I developed a quick <a href="http://en.wikipedia.org/wiki/Object_relational_mapper">ORM</a>-like interface to the APIs. I had the idea that if I could make it work for activeCollab, it must be generalizable enough to work for other services and APIs as well, which I could do later.</p>
+
+<p>And, I was right. It could be more generalized, and it could be useful. In fact, the idea was so useful that 3,000 miles away in the San Francisco office someone else was already secretly working on the same idea!</p>
+
+<h3>Enter Remote Objects</h3>
+
+<p>The result of the secretive effort, that I became aware of, is called <a href="http://github.com/sixapart/remoteobjects/">Remote Objects</a>, which identifies itself as <q>An object RESTational model.</q> <a href="http://sixapart.com/">Six Apart</a> has graciously released it as part of the requirements to run <a href="http://www.typepad.com/go/motion">TypePad Motion</a>, which is also available, under a <a href="http://en.wikipedia.org/wiki/BSD_License">BSD License</a>, on <a href="http://github.com/sixapart/typepad-motion">github</a>.</p>
+
+<p>But, just because its main intentions were for being used against the <a href="http://developer.typepad.com/api/rest.html">TypePad APIs</a>, doesn't mean that it <em>only</em> works with them.</p>
+
+<p>In fact, the developers had the foresight to think that this would be useful in other cases too, just as I did, as can be seen in the <a href="http://github.com/sixapart/remoteobjects/tree/master/examples">examples</a> that come with the package.</p>
+
+<p>Needless to say, I abandoned my implementation of this idea and will adopt Remote Objects in the future. Have a look. Hopefully it is useful in your toolbox too.</p>
+
+
+<h5 class="tag-list">Tagged: 
+  <a href="/tags/python.html">python</a>
+     , <a href="/tags/rest.html">rest</a>
+     , <a href="/tags/api.html">api</a>
+     , <a href="/tags/plug.html">plug</a>
+     
+</h5>
+
+<div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/sigusr2/embed.js"></script><noscript><a href="http://sigusr2.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </div>
+      <div id="sidebar">
+        <h2>About</h2>
+        <p>
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
+        </p>
+        <p>
+          You should follow me on <a href="http://identi.ca/apgwoz">Identi.ca</a> or <a href="http://twitter.com/apgwoz">Twitter</a>.
+        </p>
+	<h2>Inside</h2>
+	<ul>
+          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
+	</ul>
+       <ul>
+          <li>
+       <!--Ad Bard advertisement snippet, begin -->
+       <script type='text/javascript'>
+          var ab_h = '65997c9b7b5981e3cf2ebec769eea096';
+          var ab_s = '7a46f7b695d2481693fe4724f778884a';
+       </script>
+       <script type='text/javascript' src='http://cdn1.adbard.net/js/ab1.js'></script>
+       <!--Ad Bard, end -->
+          </li>
+       </ul>
+
+        <h2>Syndicate</h2>
+        <ul>
+          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
+        </ul>
+        <h2>Archives</h2>
+        <ul>
+        
+        <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (2)">January 2009 (2)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer">
+       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
+    </div>
+  </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-354660-9");
+pageTracker._trackPageview();
+</script>
+</body>
+</html>
