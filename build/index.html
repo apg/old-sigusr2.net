@@ -28,118 +28,94 @@
         
 <div class="list-post">
 
-<h2>Pattern Matching with &#34;With&#34;</h2>
-<h4>April 28, 2010 <span class="permalink"><a href="/2010/Apr/28/pattern-matching-with-with.html#disqus_thread" title="permalink">#</a></span></h4>
-<p>
-<span class="preamble">When I originally thought about adding pattern matching to Python, in the <a href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html">OCaml sense</a>, I ended up using a decorator that more or less registed a bunch of callbacks with a dispatch table based on the types of it's arguments.</span>
-</p>
+<h2>Maps are Broken, for Some Definition of Broken</h2>
+<h4>June 22, 2010 <span class="permalink"><a href="/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html#disqus_thread" title="permalink">#</a></span></h4>
+<p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
 
-<p>That worked out fine, but it didn't really have the feel of <a href="http://en.wikipedia.org/wiki/Pattern_matching">pattern matching</a> like you get with real <a href="http://en.wikipedia.org/wiki/Algebraic_data_type">algebraic data types</a>. If you recall, I was playing with the following example with the decorator approach:
-</p>
+<p>In Java, I have a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/HashMap.html">HashMap</a> and I wish to get a random key. Well, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/AbstractMap.html">AbstractMap</a> doesn't define a way to get a random key, but it does provide a way to get a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/Set.html">Set</a> of keys. Does Set have a way to get a random element? No, but you can create an Array from a Set with the <code class="inline">toArray()</code> method on Set.</p>
 
-<pre><code class="ocaml">type astnode = 
-| AndNode of astnode * astnode
-| OrNode of astnode * astnode
-| NotNode of astnode 
-| IdNode of bool
+<p>We end up with the following:</p>
 
-let rec eval_node (n: astnode) = 
-  match n with
-  | AndNode (l, r) -> (eval_node l) && (eval_node r)
-  | OrNode (l, r) -> (eval_node l) || (eval_node r)
-  | NotNode l -> not (eval_node l)
-  | IdNode v -> v
-
-eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
+<pre><code>public String randomKey() {
+    // Assuming: map = HashMap&lt;String, String&gt;;
+    Set&lt;String&gt; set = map.keySet();
+    Object[] strings = set.toArray();
+    Random random = new Random();
+    if (strings.length &gt; 0) {
+        return (String)strings[random.nextInt(strings.length)];
+    }
+    return null;
+}
 </code></pre>
 
-<p>The idea of that program was to create a small language to evaluate boolean expressions. In OCaml, it's quite succinct&mdash;too succinct, in all honesty. That's it. Of course it doesn't include a parser, or a lexer, but that's the crux of it.
-</p>
+<p>Now, this isn't necessarily bad, but we have to create a new array, and a new set each time we want a random key. We can of course be smarter about this by caching the array and/or set, but then we run into synchronization issues. We also get screwed when we attempt to implement the <code class="inline">popRandom()</code> operation, which could be implemented like so:</p>
 
-<p>Since that original post, I've posted about two other <q>language hacks</q> that I've attempted to create&mdash;both of which use <a href="http://www.python.org/dev/peps/pep-0343/">context managers</a> and the <code class="inline">with</code>-statement, <a href="http://sigusr2.net/2009/Oct/01/python-worlds.html">worlds</a> and <a href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html">dispatching urls (a la routes)</a>.</p>
-
-<p>Basically, it occurred to me yesterday, that <code class="inline">with</code>'s <code class="inline">as</code> clause did destructuring of tuples, in the same way that the assignment statement does. That is to say:</p>
-
-<pre><code class="python">a, b, c = 1, 2, 3</code></pre>
-
-<p>Will correctly assign <code class="inline">a = 1</code>, <code class="inline">b = 2</code>, <code class="inline">c = 3</code>, in the same exact way that:</p>
-
-<pre><code class="python">from contextlib import contextmanager
-@contextmanager
-def assign(*args):
-    yield args
-
-with assign(1, 2, 3) as (a, b, c,):
-    pass
+<pre><code>public String popRandom() {
+    String key = randomKey();
+    if (key != null) {
+        String value = map.get(key);
+        map.remove(key);
+        return value;
+    }
+    return null; // or more appropriately, throw an exception
+}
 </code></pre>
 
-<p>will assign <code class="inline">a = 1</code>, <code class="inline">b = 2</code>, <code class="inline">c = 3</code>.</p>
+<p>So, we're doing all this extra copying, allocating and deleting, when all we really need is an iterator, to solve this generically in <code class="inline">O(n)</code> time.</p>
 
-<p>I'll admit, that doesn't look very powerful by itself, but when you consider the possibilities, you might come up with something like I did:</p>
-
-<pre><code class="python">with structural_matching((1, 2, 3)) as match:
-    with match('list() x y z') as (x, y, z):
-        print x, y, z
-    with match('tuple() x _ z') as (x, z):
-        print "tuple case"
-        print x, z
+<pre><code>public String randomKey() {
+    // randomKey method in O(n) using imaginary iterator() on AbstractMap
+    int size = map.size();
+    if (size &gt; 0) {
+        int index = new Random().randInt(size);
+        Iterator&lt;String&gt; keys = map.iterator();
+        while (keys.hasNext()) {
+           if (index-- == 0) {
+               return keys.next();
+           }
+           keys.next();
+        }
+    }
+    return null;
+}
 </code></pre>
 
-<p>which looks incredibly close to pattern matching in OCaml. I was super excited&mdash;but it won't work.</p>
+<p>This sort of thing isn't necessarily true for dynamic languages like Python which normally have ways to iterate over keys in a map, dictionary or set. They still don't have a way to get a random element from either out of the box without resulting to the <code class="inline">O(n)</code> iteration method, or converting to a list and using a random index approach.</p>
 
-<p>See, <code class="inline">match</code> is a context manager that gets returned with the intention that if the <code class="inline">__enter__()</code> method raises a <code class="inline">NoMatch</code> exception, it skips the "body" and goes to the next match. The problem with that thinking however is simple&mdash;there's no way for <code class="inline">__enter__</code> to force skipping the body due to rejected <a href="http://www.python.org/dev/peps/pep-0377/">PEP-377</a>!</p>
-
-<p>In the example above (full source <a href="http://files.sigusr2.net/match1.py">here</a>), raising <code class="inline">NoMatch</code> in the first <code class="inline">match</code> block, results in control being passed back to the <code class="inline">__exit__()</code> of the outer context manager&mdash;<code class="inline">structural_matching</code>. And to think, I got my hopes up!</p>
-
-<p>But nevertheless, I pressed on, and hacked <a href="http://files.sigusr2.net/match2.py">together</a>, a <code class="inline">match</code>, that can destructure the following examples correctly:</p>
-
-<pre><code class="python">with match('[1:3]', [1, 2, 3, 4]) as (a,):
-    print a
-# [2, 3]
-
-with match('[1:]', "hello world") as (a,):
-    print a
-# ('e', 'ello world')
-
-with match('str() x y', 'hello world') as (h, e):
-    print 'h = ', h, ',',
-    print 'e = ', e
-# h = h, e = e
-
-with match('x y z', [1, 2, 3]) as (x, y, z,):
-    print z, y, x
-# 3 2 1
-
-class obj(object):
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-with match('obj() .x .y', obj('x-ity', 'y-ity')) as (x, y):
-    print 'x = ', x, ',',
-    print 'y = ', y
-# x = x-ity, y = y-ity
-
-with match('x y _', [1, 2, 3]) as (x, y):
-    print x, y
-# 1, 2
+<pre><code>&gt;&gt;&gt; import random
+&gt;&gt;&gt; random.choice(set([1, 2, 3]))
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/random.py", line 248, in choice
+    return seq[int(self.random() * len(seq))]  # raises IndexError if seq is empty
+TypeError: 'set' object is unindexable
 </code></pre>
 
-<p>It's much less useful considering you can't put it in the <code class="inline">structural_match</code> block ,like you would in a <em>real</em> <code class="inline">match</code> statement, but it's all we've got.</p>
+<pre><code>&gt;&gt;&gt; random.choice({'1': 'world', '2': 'galaxy', '3': 'universe'})
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/random.py", line 248, in choice
+    return seq[int(self.random() * len(seq))]  # raises IndexError if seq is empty
+KeyError: 2
+</code></pre>
 
-<p>Back then, I concluded with <q>This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</q> Today, I'll conclude the same way.</p>
+<p>And of course that makes sense given how <code class="inline">random.choice</code> is implemented, since there's not necessarily  an order for the elements of a set or dictionary, so you can't expect to subscript them. However they do provide an order when iterating over them and traversing the structure they exist in, so you could certainly use the same <code class="inline">O(n)</code> approach from above.</p>
+
+<p>If there's some other less obvious way to do this in Java using a <a href="http://en.wikipedia.org/w/index.php?title=Dependency_injection&oldid=260831402#A_code_illustration_using_Java">EnterpriseFactoryObserverFactoryFactoryCreator</a>, please leave a comment.</p>
 
 <h5 class="tag-list">Tagged: 
-  <a href="/tags/python.html">python</a>
-     , <a href="/tags/with.html">with</a>
-     , <a href="/tags/hack.html">hack</a>
-     , <a href="/tags/ocaml.html">ocaml</a>
+  <a href="/tags/algorithms.html">algorithms</a>
+     , <a href="/tags/java.html">java</a>
+     , <a href="/tags/python.html">python</a>
+     , <a href="/tags/rant.html">rant</a>
      
 </h5>
 </div>
 
 
 <h3 class="other">Other Recent Posts</h3>
+
+   <p>28 Apr 2010&mdash;<a href="/2010/Apr/28/pattern-matching-with-with.html">Pattern Matching with &#34;With&#34;</a></p>
 
    <p>28 Jan 2010&mdash;<a href="/2010/Jan/28/the-real-disappointment.html">The Real Disappointment</a></p>
 
@@ -156,8 +132,6 @@ with match('x y _', [1, 2, 3]) as (x, y):
    <p>30 Apr 2009&mdash;<a href="/2009/Apr/30/the-power-that-is-gnu-emacs.html">The Power That is GNU Emacs</a></p>
 
    <p>04 Mar 2009&mdash;<a href="/2009/Mar/04/dispatching-with-with.html">Dispatching With &#34;with&#34;</a></p>
-
-   <p>06 Feb 2009&mdash;<a href="/2009/Feb/06/higher-order-php.html">Higher Order PHP</a></p>
    
 
       </div>
@@ -192,6 +166,8 @@ with match('x y _', [1, 2, 3]) as (x, y):
         <h2>Archives</h2>
         <ul>
         
+        <li><a href="/2010/Jun/" title="June 2010 (1)">June 2010 (1)</a></li>
+        
         <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
         
         <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
@@ -212,7 +188,7 @@ with match('x y _', [1, 2, 3]) as (x, y):
         
         <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
         
-        <li><a href="/2009/Jan/" title="January 2009 (2)">January 2009 (2)</a></li>
+        <li><a href="/2009/Jan/" title="January 2009 (1)">January 2009 (1)</a></li>
         
         <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
         
