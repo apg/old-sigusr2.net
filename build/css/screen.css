@@ -226,6 +226,10 @@ h2.content-title {
  border-bottom: 1px solid #666666;
 }
 
+#content dl {
+ font-size: 1.15em;
+}
+
 #sidebar h2 {
  padding-top: 21px;
  font-family: "Palatino Linotype", "Book Antiqua", Palatino, Gentium, Georgia, serif;

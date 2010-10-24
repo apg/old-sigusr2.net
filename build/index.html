@@ -28,92 +28,60 @@
         
 <div class="list-post">
 
-<h2>Maps are Broken, for Some Definition of Broken</h2>
-<h4>June 22, 2010 <span class="permalink"><a href="/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html#disqus_thread" title="permalink">#</a></span></h4>
-<p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
+<h2>Clojure Conj Reading List</h2>
+<h4>October 24, 2010 <span class="permalink"><a href="/2010/Oct/24/clojure-conj-reading-list.html#disqus_thread" title="permalink">#</a></span></h4>
+<p>
+   <span class="preamble">This past weekend, the first (hopefully annual) <a href="http://first.clojure-conj.org">Clojure Conj</a> took place in Durham, NC.</span></p>
+<p>In my opinion, the conference was a great success, and was greatly inspirational, as well as enjoyable in many regards. I left the conference recharged with energy to better learn about and help improve the Clojure ecosystem, and just get more involved. But, that's not all I left with of course. I left with great information and even more pointers to new thoughts, opinions and ideas.</p>
 
-<p>In Java, I have a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/HashMap.html">HashMap</a> and I wish to get a random key. Well, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/AbstractMap.html">AbstractMap</a> doesn't define a way to get a random key, but it does provide a way to get a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/Set.html">Set</a> of keys. Does Set have a way to get a random element? No, but you can create an Array from a Set with the <code class="inline">toArray()</code> method on Set.</p>
-
-<p>We end up with the following:</p>
-
-<pre><code>public String randomKey() {
-    // Assuming: map = HashMap&lt;String, String&gt;;
-    Set&lt;String&gt; set = map.keySet();
-    Object[] strings = set.toArray();
-    Random random = new Random();
-    if (strings.length &gt; 0) {
-        return (String)strings[random.nextInt(strings.length)];
-    }
-    return null;
-}
-</code></pre>
-
-<p>Now, this isn't necessarily bad, but we have to create a new array, and a new set each time we want a random key. We can of course be smarter about this by caching the array and/or set, but then we run into synchronization issues. We also get screwed when we attempt to implement the <code class="inline">popRandom()</code> operation, which could be implemented like so:</p>
-
-<pre><code>public String popRandom() {
-    String key = randomKey();
-    if (key != null) {
-        String value = map.get(key);
-        map.remove(key);
-        return value;
-    }
-    return null; // or more appropriately, throw an exception
-}
-</code></pre>
-
-<p>So, we're doing all this extra copying, allocating and deleting, when all we really need is an iterator, to solve this generically in <code class="inline">O(n)</code> time.</p>
-
-<pre><code>public String randomKey() {
-    // randomKey method in O(n) using imaginary iterator() on AbstractMap
-    int size = map.size();
-    if (size &gt; 0) {
-        int index = new Random().randInt(size);
-        Iterator&lt;String&gt; keys = map.iterator();
-        while (keys.hasNext()) {
-           if (index-- == 0) {
-               return keys.next();
-           }
-           keys.next();
-        }
-    }
-    return null;
-}
-</code></pre>
-
-<p>This sort of thing isn't necessarily true for dynamic languages like Python which normally have ways to iterate over keys in a map, dictionary or set. They still don't have a way to get a random element from either out of the box without resulting to the <code class="inline">O(n)</code> iteration method, or converting to a list and using a random index approach.</p>
-
-<pre><code>&gt;&gt;&gt; import random
-&gt;&gt;&gt; random.choice(set([1, 2, 3]))
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/random.py", line 248, in choice
-    return seq[int(self.random() * len(seq))]  # raises IndexError if seq is empty
-TypeError: 'set' object is unindexable
-</code></pre>
-
-<pre><code>&gt;&gt;&gt; random.choice({'1': 'world', '2': 'galaxy', '3': 'universe'})
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
-  File "/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/random.py", line 248, in choice
-    return seq[int(self.random() * len(seq))]  # raises IndexError if seq is empty
-KeyError: 2
-</code></pre>
-
-<p>And of course that makes sense given how <code class="inline">random.choice</code> is implemented, since there's not necessarily  an order for the elements of a set or dictionary, so you can't expect to subscript them. However they do provide an order when iterating over them and traversing the structure they exist in, so you could certainly use the same <code class="inline">O(n)</code> approach from above.</p>
-
-<p>If there's some other less obvious way to do this in Java using a <a href="http://en.wikipedia.org/w/index.php?title=Dependency_injection&oldid=260831402#A_code_illustration_using_Java">EnterpriseFactoryObserverFactoryFactoryCreator</a>, please leave a comment.</p>
+<p>I've compiled a small reading list of things that were mentioned in talks. I also got a chance to (briefly) meet <a href="http://fogus.me">Michael Fogus</a>, whose talk discussed the influences of Clojure and asked him if it would be possible for him to make a reading list. I certainly hope he does. Anyway, here's my list:</p>
+<dl>
+   <dt>
+      <q><a href="http://www.gdmc.nl/publications/2008/MonetDB.pdf">MonetDB, a novel spatial column-store DBMS</a></q>&mdash;Maarten Vermeij, Wilko Quak, Martin Kersten, Niels Nes
+   </dt>
+   <dd>
+      <em>Abstract</em>: Column-store database engines are a promising track in database research to handle data warehouses. In this paper we describe our experiences in extending the open-source database management system MonetDB with geo-spatial functionality. The approach taken is to leverage the existing geo-spatial software library GEOS through the extensibility features of this DBMS. The result is a high-performance solution using a software stack that enables future research and development improvements in many directions. In our paper we &iuml;&not;rst give an overview of the MonetDB architecture then we describe how this architecture is beneficial for the handling of spatial data.
+   </dd>
+   <dt>
+      <q><a href="http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf">The Zipper</a></q>&mdash;Gerard Huet
+   </dt>
+   <dd>
+      <em>Capsule Review</em>: Almost every programmer has faced the problem of representing a tree together with a subtree that is the focus of attention, where that focus may move left, right, up or down the tree. The Zipper is Huet's nifty name for a nifty data structure which fulfills this need. I wish I had known of it when I faced this task, because the solution I came up with was not quite so efficient or elegant as the Zipper.
+   </dd>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/0465024114?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0465024114">Finding Flow: The Psychology of Engagement with Everyday Life</a></q>&mdash;Mihaly Csikszentmihalyi
+   </dt>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/0716704633?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0716704633">Computer Power and Human Reason</a>&mdash;Joseph Weizenbaum</q>
+   </dt>
+   <dt>
+      <q><a href="http://www.soi.city.ac.uk/~ross/papers/FingerTree.pdf">Finger Trees: A Simple General-purpose Data Structure</a></q>&mdash;Ralf Hinze, Ross Paterson
+   </dt>
+   <dd>We present 2-3 finger trees, a functional representation of persistent sequences supporting access to the ends in amortized constant time, and concatenation and splitting in time logarithmic in the size of the smaller piece. Representations achieving these bounds have appeared previously, but 2-3 finger trees are much simpler, as are the operations on them. Further, by defining the split operation in a general form, we obtain a general purpose data structure that can serve as a sequence, priority queue, search tree, priority search queue and more.
+   </dd>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/0691023565?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0691023565">How to Solve It: A New Aspect of Mathematical Method</a></q>&mdash;G. Polya
+   </dt>
+</dl>
 
 <h5 class="tag-list">Tagged: 
-  <a href="/tags/algorithms.html">algorithms</a>
-     , <a href="/tags/java.html">java</a>
-     , <a href="/tags/python.html">python</a>
-     , <a href="/tags/rant.html">rant</a>
+  <a href="/tags/toread.html">toread</a>
+     , <a href="/tags/clojure.html">clojure</a>
+     , <a href="/tags/conj.html">conj</a>
      
 </h5>
 </div>
 
 
 <h3 class="other">Other Recent Posts</h3>
+
+   <p>12 Oct 2010&mdash;<a href="/2010/Oct/12/this-is-not-the-freehackers-union.html">This is not the Freehackers Union...</a></p>
+
+   <p>25 Jun 2010&mdash;<a href="/2010/Jun/25/google-spreadsheets-game-of-life.html">Google Spreadsheets: Game of Life</a></p>
+
+   <p>23 Jun 2010&mdash;<a href="/2010/Jun/23/argf.html">Code Blogging: ARGF in Python</a></p>
+
+   <p>22 Jun 2010&mdash;<a href="/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html">Maps are Broken, for Some Definition of Broken</a></p>
 
    <p>28 Apr 2010&mdash;<a href="/2010/Apr/28/pattern-matching-with-with.html">Pattern Matching with &#34;With&#34;</a></p>
 
@@ -124,14 +92,6 @@ KeyError: 2
    <p>01 Oct 2009&mdash;<a href="/2009/Oct/01/python-worlds.html">Python Worlds</a></p>
 
    <p>09 Sep 2009&mdash;<a href="/2009/Sep/09/bitten-really-hard.html">Bitten... Really Hard</a></p>
-
-   <p>22 Jul 2009&mdash;<a href="/2009/Jul/22/case-of-the-unusable-reusable.html">The Case of the Unusable Reusable</a></p>
-
-   <p>07 May 2009&mdash;<a href="/2009/May/07/hacker-utility-belt-ssh.html">The Hacker&#39;s Utility Belt: SSH</a></p>
-
-   <p>30 Apr 2009&mdash;<a href="/2009/Apr/30/the-power-that-is-gnu-emacs.html">The Power That is GNU Emacs</a></p>
-
-   <p>04 Mar 2009&mdash;<a href="/2009/Mar/04/dispatching-with-with.html">Dispatching With &#34;with&#34;</a></p>
    
 
       </div>
@@ -166,7 +126,9 @@ KeyError: 2
         <h2>Archives</h2>
         <ul>
         
-        <li><a href="/2010/Jun/" title="June 2010 (1)">June 2010 (1)</a></li>
+        <li><a href="/2010/Oct/" title="October 2010 (2)">October 2010 (2)</a></li>
+        
+        <li><a href="/2010/Jun/" title="June 2010 (3)">June 2010 (3)</a></li>
         
         <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
         

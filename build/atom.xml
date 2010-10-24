@@ -1,4 +1,145 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2010-06-22T12:02:23Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Maps are Broken, for Some Definition of Broken</title><link href="/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html"/><id>md5:ee8c78a17c21d8d986ea5f7e3bc78811</id><updated>2010-06-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2010-10-24T19:34:01Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Clojure Conj Reading List</title><link href="/2010/Oct/24/clojure-conj-reading-list.html"/><id>md5:bf830f7059334bc6e2722078fa36fb07</id><updated>2010-10-24T00:00:00Z</updated><content type="html"><![CDATA[<p>
+   <span class="preamble">This past weekend, the first (hopefully annual) <a href="http://first.clojure-conj.org">Clojure Conj</a> took place in Durham, NC.</span></p>
+<p>In my opinion, the conference was a great success, and was greatly inspirational, as well as enjoyable in many regards. I left the conference recharged with energy to better learn about and help improve the Clojure ecosystem, and just get more involved. But, that's not all I left with of course. I left with great information and even more pointers to new thoughts, opinions and ideas.</p>
+
+<p>I've compiled a small reading list of things that were mentioned in talks. I also got a chance to (briefly) meet <a href="http://fogus.me">Michael Fogus</a>, whose talk discussed the influences of Clojure and asked him if it would be possible for him to make a reading list. I certainly hope he does. Anyway, here's my list:</p>
+<dl>
+   <dt>
+      <q><a href="http://www.gdmc.nl/publications/2008/MonetDB.pdf">MonetDB, a novel spatial column-store DBMS</a></q>&mdash;Maarten Vermeij, Wilko Quak, Martin Kersten, Niels Nes
+   </dt>
+   <dd>
+      <em>Abstract</em>: Column-store database engines are a promising track in database research to handle data warehouses. In this paper we describe our experiences in extending the open-source database management system MonetDB with geo-spatial functionality. The approach taken is to leverage the existing geo-spatial software library GEOS through the extensibility features of this DBMS. The result is a high-performance solution using a software stack that enables future research and development improvements in many directions. In our paper we &iuml;&not;rst give an overview of the MonetDB architecture then we describe how this architecture is beneficial for the handling of spatial data.
+   </dd>
+   <dt>
+      <q><a href="http://www.st.cs.uni-saarland.de/edu/seminare/2005/advanced-fp/docs/huet-zipper.pdf">The Zipper</a></q>&mdash;Gerard Huet
+   </dt>
+   <dd>
+      <em>Capsule Review</em>: Almost every programmer has faced the problem of representing a tree together with a subtree that is the focus of attention, where that focus may move left, right, up or down the tree. The Zipper is Huet's nifty name for a nifty data structure which fulfills this need. I wish I had known of it when I faced this task, because the solution I came up with was not quite so efficient or elegant as the Zipper.
+   </dd>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/0465024114?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0465024114">Finding Flow: The Psychology of Engagement with Everyday Life</a></q>&mdash;Mihaly Csikszentmihalyi
+   </dt>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/0716704633?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0716704633">Computer Power and Human Reason</a>&mdash;Joseph Weizenbaum</q>
+   </dt>
+   <dt>
+      <q><a href="http://www.soi.city.ac.uk/~ross/papers/FingerTree.pdf">Finger Trees: A Simple General-purpose Data Structure</a></q>&mdash;Ralf Hinze, Ross Paterson
+   </dt>
+   <dd>We present 2-3 finger trees, a functional representation of persistent sequences supporting access to the ends in amortized constant time, and concatenation and splitting in time logarithmic in the size of the smaller piece. Representations achieving these bounds have appeared previously, but 2-3 finger trees are much simpler, as are the operations on them. Further, by defining the split operation in a general form, we obtain a general purpose data structure that can serve as a sequence, priority queue, search tree, priority search queue and more.
+   </dd>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/0691023565?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0691023565">How to Solve It: A New Aspect of Mathematical Method</a></q>&mdash;G. Polya
+   </dt>
+</dl>
+]]></content></entry>
+<entry><title>This is not the Freehackers Union...</title><link href="/2010/Oct/12/this-is-not-the-freehackers-union.html"/><id>md5:39d499a59be2c0995aa1b553a103ed50</id><updated>2010-10-12T00:00:00Z</updated><content type="html"><![CDATA[<p><em>I work at <a href="http://www.meetup.com/">Meetup</a>, but the opinions expressed in here are my own, and do not necessarily represent the opinions of Meetup.</em></p>
+
+<p><span class="preamble">Zed Shaw had a <a href="http://www.zedshaw.com/essays/the_freehackers_union.html">dream</a>, and that dream <a href="http://www.zedshaw.com/blog/2009-03-16.html">failed</a>, but I'm trying again and at least for now succeeding.</span></p>
+
+<p>When the <a href="http://www.zedshaw.com/essays/the_freehackers_union.html">Freehackers Union post</a> came out and it starting getting some attention, I was completely stoked. I couldn't wait to move to NYC (I was moving anyway) and show off my hack<sup><a href="#note-1">[1]</a></sup> and gain acceptance into the group. Of course, by the time I actually got here, the F.U. had dissipated.</p>
+
+<p>I have to be honest, I did think Zed was exaggerating quite a bit when he described his frustrations attending tech events, but as I started getting involved in the NYC tech scene, I too felt the same way.</p>
+
+<p>But, Zed was right&mdash;NYC tech groups and events suck. OK, maybe that's a bit harsh, because there <a href="http://lispnyc.org/home.clp">are</a> <a href="http://nycpython.org/">great</a> <a href="http://www.meetup.com/Clojure-NYC/">ones</a> <a href="http://www.meetup.com/NYC-Tech-Talks/">out</a> <a href="http://www.meetup.com/ny-scala">there</a><sup><a href="#note-2">[2]</a></sup>, but even the ones I like suffer from business people, and even worse, <em>horrible</em> tech recruiters.</p>
+
+<p>Tech events also suffer from too much company promotion and not enough about the actual tech. I can't count how many times I've sat through a 15 minute sermon on Product X that lasted <em>25 minutes</em> due to the inability of the organizer, whether due to politeness or interest, to keep to the scheduled time slot. Worse yet, the speaker gives a sales pitch, hoping to get the audience on board to purchase it, or in the case of it being some Company X's "contribution to open source" to become contributors. It's just not useful to me<sup><a href="#note-3">[3]</a></sup>.
+</p>
+
+<p>In fact, the best talks at any tech event I've ever been to are just 5 minutes (dubbed <a href="http://en.wikipedia.org/wiki/Lightning_Talk">Lightning Talks</a>). Five minutes isn't a lot of time, but it is more than enough time to convince an audience that they should check something out, or <em>show off</em> something cool that they have built. It also happens to be the format that the F.U. used. Why? Because Zed is an intelligent guy&mdash;he too knows that 5 minutes is a perfect amount of time for a talk.</p>
+
+<p>But why? It's quite simple really. If the talk sucks, or doesn't interest you, it is only 5 minutes of your life gone. However, if the talk is good or of interest to you, there is always time later to get together and discuss it further.</p>
+
+<h3>Hack and Tell</h3>
+
+<p>In August, I started NYC's <a href="http://hackandtell.org/">Hack and Tell</a>, a show and tell for hackers. It's an experiment, attempting to answer the question: "Can a relaxed Freehackers Union, with a few new rules actually work?" So far the answer has been "Hell yeah! It can totally thrive!" All 3 events have had great turn outs, with great projects being presented.</p>
+
+<p>The rules are simple. You get 5 minutes<sup><a href="#note-4">[4]</a></sup>to show off whatever it is you are doing (hardware, library X, programming language, build tool, visualization, hack, whatever), and the audience gets 5 minutes to give you praise, tell you "you suck"<sup><a href="#note-5">[5]</a></sup>, ask a question, or offer advice. The only other rules are "No Startup pitches", "No Deckware" and keep your work at work&mdash;we want to see personal projects.</p>
+
+<p>We also do not allow the resources of the group to be utilized for recruiting purposes. As a result, we see next to no recruiters<sup><a href="#note-6">[6]</a></sup>, and I, on occasion, have received emails from members wanting to promote something, asking if it was OK to do so<sup><a href="#note-7">[7]</a></sup>.</p>
+
+<p>I'm not sure how long the quiet time will last, (or even how long I can successfully keep it running) but my hope is that strict enforcement of the core rules will keep it fun and a great addition to the NYC tech community.</p>
+
+<h4>This sounds wonderful, but what are the issues?</h4>
+
+<p>Aside from the aforementioned recruiter, we've had very few interruptions to the flow and development of an awesome group, but I do see some problems starting to show.</p>
+
+<p>For one, the group's membership, and attendance is starting to grow due to word of mouth and more exposure from local NYC mailing lists such as <a href="http://www.garysguide.org/">Gary's Guide</a> and <a href="http://startupdigest.com/">Startup Digest</a>.</p>
+
+<p>This is both a blessing and a curse. It is a blessing because we have a larger pool of developers to show off their projects. But, it is also a curse because not everyone that joins will become a presenter, whether due to lack of technical knowledge or lack of time outside of work to build things to show off. The curse actually can get worse of course, because there is not a clear reason for them (i.e. the non-contributors) to attend. What do these folks actually want to get from Hack and Tell?</p>
+
+<p>It is quite possible that they'll become members for recruiting reasons, or other reasons that I have not quite discovered yet, but if they are not building stuff in their free time, do they belong? I don't know, but this question certainly on my mind, and it is certainly a worry.</p>
+
+<p>Ultimately, I think that some pool of non-presenters is healthy, and I believe that the pool is ultimately contributing positively, at least in some cases. The group of non-presenters most likely has something else to contribute&mdash;maybe they are well connected and can be a megaphone to people in other cities, or even within NYC&mdash;which we certainly need, at least now, to attract more great projects to be presented. But, that can't be true of the entire non-presenter pool. There has to be leechers. Again, I don't have the answers.</p>
+
+<p>I'm more than happy to hear anyone and everyone's thought on the matter, share more of my experiences and help other people get a Hack and Tell started in their city, if they'd like. I'm certainly willing to setup another means of conversation as well if anyone is interested.</p>
+
+<p><strong>More discussion:</strong> <a href="http://news.ycombinator.com/item?id=1785627">Hacker News</a></p>
+
+<p><strong>Zed responds</strong> at <a href="http://oppugn.us/posts/1286944278.html">FU NYC</a></p>
+
+<ol class="footnotes">
+   <li id="note-1">I didn't actually have a hack to show off, but I figured I'd come up with something, and hoped it'd be enough value to get me in</li>
+   <li id="note-2">And many more that are good but not great. Of course, I haven't been to <em>all</em> the events or groups in NYC, so this is just my personal experience.</li>
+   <li id="note-3">The product <em>might</em> actually be useful to me, but a 5 minute sales pitch with a link to more detail, it's design, some use cases etc. would be <em>more</em> useful because the speaker probably isn't answering my lower-level questions anyway, and it's shorter so I'll actually listen.</li>
+   <li id="note-4">This is strictly enforced, and we normally use a <a href="http://hackandtell.org/timer">timer</a> (<a href="http://github.com/apgwoz/timer/">source</a>)&mdash;it's a bit buggy but it works great most of the time) which claps at the end. This serves two purposes; it prompts the the audience to clap, and it means that no one has to be rude to stop the presenter.</li>
+   <li id="note-5">So far, this hasn't happened.</li>
+   <li id="note-6">One company tried, and were pummeled with a wall of text explaining how stupid it is to target intelligent developers&mdash;the kind of people that'd almost certainly check the recruiting company's website if they were interested.</li>
+   <li id="note-7">In most cases, the post was inappropriate, as it related to promotion of a startup, which of course is work related.</li>
+</ol>
+
+
+]]></content></entry>
+<entry><title>Google Spreadsheets: Game of Life</title><link href="/2010/Jun/25/google-spreadsheets-game-of-life.html"/><id>md5:026e9ae419696af7421a97f140a267e1</id><updated>2010-06-25T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Google Docs has become an incredibly useful tool for businesses looking to cut costs on software and infrastructure, and it just keeps getting better.</span></p>
+
+<p>For years, many businesses were tied to Microsoft Windows due to macros that they made use of in Excel and Word, but that's about to change. Recently, Google Spreadsheets released "<a href="http://www.google.com/google-d-s/scripts/scripts.html">Apps Script</a>," which allows you to extend Spreadsheets and/or integrate other Google products like Calendar.</p>
+
+<p>Apps Scripts are written in JavaScript and the environment provides you with a bunch of different <a href="http://www.google.com/google-d-s/scripts/guide_chapter_01.html">services</a>, which allow you to access your contacts, maps, XML, fetch URLs from the Internet, get Google finance information, send email&mdash;all sorts of things that make it possible to create complicated workflows and applications. I can imagine that there will be a marketplace sometime soon, which will be bustling with great apps to buy and use.</p>
+
+<p>For now though, you're on your own.</p>
+
+<p>Anyway, yesterday, Google had a hackathon, and because I had no real business oriented application ideas I thought I'd make a game. The trouble is, all processing is done on the server side, so real time interaction is a bit difficult&mdash;if not impossible. There are timer events, form events and menu events, but you can't bind a key or anything like that&mdash;at least not that I know of.</p>
+
+<p>So, a game like Tetris or Snake was out, but not Conway's classic <a href="http://en.wikipedia.org/wiki/Conway's_Game_of_Life">Game of Life</a>. The Game of Life is a zero-player game in which the initial board evolves to form interesting patterns or disappears into nothing. It's normally drawn on a grid of some sort, so I thought a spreadsheet was appropriate.</p>
+
+<p><img src="http://files.sigusr2.net/images/game-of-life-gosper.png" /></p>
+
+<p>I've put the source code up on <a href="http://github.com/apgwoz/app-script-game-of-life">GitHub</a>, along with some more instructions if you wanna check it out. Fork it.</p>
+]]></content></entry>
+<entry><title>Code Blogging: ARGF in Python</title><link href="/2010/Jun/23/argf.html"/><id>md5:9d5ba6e7df3fe6f44b607a6a0be06952</id><updated>2010-06-23T00:00:00Z</updated><content type="html"><![CDATA[<pre><code class="python">"""ARGF from Ruby in Python.
+Released into the public domain by Andrew Gwozdziewycz, 2010
+"""
+
+import sys, os
+
+
+class _ARGF(object):
+
+    def __init__(self):
+        self.lineno = 0
+        self.file = None
+
+    def __iter__(self):
+        return self.next()
+
+    def next(self):
+        files = filter(os.path.isfile, sys.argv[1:])
+        pairs = [(f, open(f)) for f in files] \
+            if files else [('STDIN', sys.stdin)]
+            
+        for name, fobj in pairs:
+            self.file = name
+
+            for line in fobj.xreadlines():
+                self.file = 'STDIN'
+                self.lineno += 1
+                yield line
+
+ARGF = _ARGF()
+</code></pre>
+
+<p><strong>Update:</strong> It was pointed out that I didn't handle <code class="inline">lineno</code> correctly; I fixed it.</p>
+]]></content></entry>
+<entry><title>Maps are Broken, for Some Definition of Broken</title><link href="/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html"/><id>md5:ee8c78a17c21d8d986ea5f7e3bc78811</id><updated>2010-06-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
 
 <p>In Java, I have a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/HashMap.html">HashMap</a> and I wish to get a random key. Well, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/AbstractMap.html">AbstractMap</a> doesn't define a way to get a random key, but it does provide a way to get a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/Set.html">Set</a> of keys. Does Set have a way to get a random element? No, but you can create an Array from a Set with the <code class="inline">toArray()</code> method on Set.</p>
 
@@ -48,6 +189,7 @@
 }
 </code></pre>
 
+
 <p>This sort of thing isn't necessarily true for dynamic languages like Python which normally have ways to iterate over keys in a map, dictionary or set. They still don't have a way to get a random element from either out of the box without resulting to the <code class="inline">O(n)</code> iteration method, or converting to a list and using a random index approach.</p>
 
 <pre><code>&gt;&gt;&gt; import random
@@ -70,6 +212,20 @@ KeyError: 2
 <p>And of course that makes sense given how <code class="inline">random.choice</code> is implemented, since there's not necessarily  an order for the elements of a set or dictionary, so you can't expect to subscript them. However they do provide an order when iterating over them and traversing the structure they exist in, so you could certainly use the same <code class="inline">O(n)</code> approach from above.</p>
 
 <p>If there's some other less obvious way to do this in Java using a <a href="http://en.wikipedia.org/w/index.php?title=Dependency_injection&oldid=260831402#A_code_illustration_using_Java">EnterpriseFactoryObserverFactoryFactoryCreator</a>, please leave a comment.</p>
+
+
+<p><strong>Update: I overlooked something important, which was pointed out by <a href="http://news.ycombinator.com/item?id=1452619">gojomo</a> on Hacker News. Set, which is returned from <code class="inline">keySet()</code> on HashMap, has an iterator. Thus:</strong></p>
+
+<pre><code>public String randomKey() {
+    int index = random.nextInt(map.size());
+    for (String key: map.keySet()) {
+        if (index-- == 0) {
+            return key;
+        }
+    }
+    return null;
+}
+</code></pre>
 ]]></content></entry>
 <entry><title>Pattern Matching with "With"</title><link href="/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
 <span class="preamble">When I originally thought about adding pattern matching to Python, in the <a href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html">OCaml sense</a>, I ended up using a decorator that more or less registed a bunch of callbacks with a dispatch table based on the types of it's arguments.</span>
@@ -328,385 +484,6 @@ connection = urllib2.urlopen(req)
 <p>... and now it works fine.</p>
 
 <p>This whole experience will make me think twice before laying the blame anywhere until I have uncovered the real truth, something I think all programmers should learn to do, if they don't know already.</p>
-]]></content></entry>
-<entry><title>The Case of the Unusable Reusable</title><link href="/2009/Jul/22/case-of-the-unusable-reusable.html"/><id>md5:1790e770e90b7ed37ba8eeeda62034a7</id><updated>2009-07-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">The <a href="http://www.djangoproject.com/">Django</a> web framework has a huge following that releases lots of simple reusable apps that can be plugged into your website. However, sometimes they are too simple, and not "plugin-able" quite enough.</span></p>
-
-<p>Take for instance <a href="http://code.google.com/p/django-favorites/" title="django-favorites on Google Code">django-favorites</a>. By itself it's a great package that does exactly what you want&mdash;it allows a user to mark things as being a favorite. Notice that I said "things." "Things" here means any model, because it uses the <a href="http://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/#id1" title="Generic Relations">generic relationships</a> framework that Django provides.</p>
-
-<p>This is a huge win on its own because it means that I don't have to define a new favorites model for blog posts, one for photos and another for music I'm listening too. But, there's a downside to this as well.</p>
-
-<p>How do I check to see if an item is a favorite? Well, for each blog post I select back from the database, I have to make another query to see whether or not it was a favorite or not. Alternatively, of course, I could be smarter and do a bulk query using an <code class="inline">IN</code> clause, making the query count only 2. But, if I wasn't using an <a href="http://en.wikipedia.org/wiki/Object-relational_mapping" title="Object Relational Mapper">ORM</a>, my SQL would use an <code class="inline">OUTER JOIN</code>, or a sub-query to select back whether or not it was marked a favorite for the current user.</p>
-
-<p>Django can do this using the <a href="http://docs.djangoproject.com/en/dev/ref/models/querysets/#queryset-methods-that-return-new-querysets"><code class="inline">extra</code></a> method for <code class="inline">QuerySet</code>s.</p>
-
-<p>Ok, so we can use <code class="inline">extra</code> every time we want to 
-select back whether or not an item is a favorite, no big deal.</p>
-
-<code class="python">content_type = ContentType.objects.get_for_model(Photo)
-SQL = """SELECT 1 FROM favorites_favorite f
-WHERE f.content_type_id = %(content_type)d and
-      f.object_id = photos_photo.id and
-      f.user_id = %(user_id)d
-"""
-attrs = {'content_type': content_type.id, 'user_id': user.id}
-entries = Photo.objects.extra(select={'is_favorite': SQL % attrs})
-</code>
-
-<p>Except that you have to do this every time. So, you then create a custom manager for <code class="inline">Photo</code> that includes a <code class="inline">check_is_favorite</code> method, which adds the <code class="inline">is_favorite</code> pseudo-column and everything is good.</p>
-
-<p>That is until you have to do it for <code class="inline">Entry</code>, and <code class="inline">Song</code>, and <code class="inline">User</code>.</p>
-
-<p>The solution however is simple. Reusable apps should include a "ManagerMixin", if it makes sense to make reusing the app as painless as possible. The django-favorites application that I've been using in my example would be complete in my eyes if it had something like this defined in it:</p>
-
-<code class="python">class FavoritesManagerMixin(object):
-    """ A Mixin to add a `favorite__favorite` column via extra 
-    """
-    def with_favorite_for(self, user, all=True):
-        """ Adds a column favorite__favorite to the returned object, which
-        indicates whether or not this item is a favorite for a user
-        """
-        content_type = ContentType.objects.get_for_model(self.model)
-        pk_field = "%s.%s" % (qn(self.model._meta.db_table),
-                              qn(self.model._meta.pk.column))
-
-        favorite_sql = """(SELECT 1 FROM %(favorites_db_table)s 
-WHERE %(favorites_db_table)s.object_id = %(pk_field)s and
-      %(favorites_db_table)s.content_type_id = %(content_type)d and
-      %(favorites_db_table)s.user_id = %(user_id)d)
-""" % {'pk_field': pk_field, \
-           'db_table': qn(self.model._meta.db_table), \
-           'favorites_db_table': qn(Favorite._meta.db_table), \
-           'user_id': user.pk, \
-           'content_type': content_type.id, \
-           }
-
-        extras = {
-            'select': {'favorite__favorite': favorite_sql},
-            }
-
-        if not all:
-            extras['where'] = ['favorite__favorite == 1']
-
-        return self.extra(**extras)
-</code>
-
-<p>I have yet to run a bench mark against this to determine whether or not the sub-query here is less efficient than doing an <code class="inline">OUTER JOIN</code>. My gut says it would be, but for a first go at it, I'll keep it like this.</p>
-
-<p>Anyway, then to make use of this you create a custom manager that uses <code class="inline">FavoritesManagerMixin</code> as one of its base classes:</p>
-
-<code class="python">class SongManager(models.Manager, <strong>FavoritesMixinManager</strong>):
-    pass
-
-class Song(models.Model):
-    title = models.CharField(max_length=255, null=False, blank=False)
-    artist = models.ForeignKey('Artist')
-    album = models.ForeignKey('Album')
-
-    <strong>objects = SongManager()</strong>
-</code>
-
-<p>And then to make use of it, we do:</p>
-<code class="python">all_songs_with_favorites_marked = Song.objects.with_favorite_for(user)
-only_favorite_songs = Song.objects.with_favorite_for(user, all=False)
-</code>
-
-<p>The intention of this post isn't to point out a flaw in django-favorites, an otherwise great reusable application, BTW, but instead is meant to give a way that this idea of reusable can actually be usable.</p>
-
-<p>I put my django-favorites on <a href="http://github.com/apgwoz/django-favorites/">github</a>. Feel free to flame me for going against what this post stands for and creating yet another "favorites" reusable app, without submitting a patch to the original, I wanted some practice in Django development.
-</p>
-]]></content></entry>
-<entry><title>The Hacker's Utility Belt: SSH</title><link href="/2009/May/07/hacker-utility-belt-ssh.html"/><id>md5:1c30eb53e322a859bb17913f525bd6ef</id><updated>2009-05-07T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Most hackers<a href="#f1">[1]</a> aren't <a href="http://en.wikipedia.org/wiki/Batman">Batman</a>, but aside from <a href="http://en.wikipedia.org/wiki/Batman%27s_utility_belt">Batman's utility belt</a>, the Batcave and Alfred, he's no different than you and me.</span></p>
-
-<p>He's got strength and training on his side, but I could probably take him if he didn't have his belt and was blindfolded. Give him his utility belt though, and I'd be doomed. That's not because his belt has super powers&mdash;instead his belt contains tools that are useful in common situations of distress, and of course detective work. The Bat-grappling hook for instance allows him to scale buildings and walls, and tranquillizer darts allow him to temporarily disable a foe. Batarangs, with practice, can be used to disable an opponent by aiming for a body part, or to cut down a hanging chandelier, creating yet another obstacle for foes to fight through.</p>
-
-<p>Hackers have similar tools, but we carry them in "/usr/bin/" (though how cool would it have been if the <a href="http://en.wikipedia.org/wiki/Unix">Bell Labs folks</a> named it "/usr/belt/" instead). The tools <em>we</em> use, generally allow us to solve problems quickly and efficiently&mdash;just like Batman.</p>
-
-<p>The tool that I've come to rely on quite a bit recently is <a href="http://en.wikipedia.org/wiki/Secure_Shell">SSH</a>. Most hackers use SSH for working remotely on servers, and for copying files over <a href="http://en.wikipedia.org/wiki/Secure_copy">SCP</a> or <a href="http://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol">SFTP</a>. Some may even use <a href="http://en.wikipedia.org/wiki/Filesystem_in_Userspace">FUSE</a> and <a href="http://en.wikipedia.org/wiki/SSHFS">SSHFS</a> to mount file systems over SSH. Its potential uses are endless, but the most useful uses for me lately have been tunneling and <a href="http://en.wikipedia.org/wiki/SOCKS">SOCKS</a> proxies.</p>
-
-<h3>Tunneling</h3>
-<p>As a programmer who on occasion works from home (more so currently), it's often a battle to connect to all of the company resources I need in order to perform my job. Firewalls are good things, and are configurable to allow remote people access to walled gardens, but with dynamic <a href="http://en.wikipedia.org/wiki/IP_address" title="Internet Protocol Address">IP addresses</a> being the common norm, opening up resources to many different addresses gets hard for sysadmins to track. Besides, they've got a ton on their plate already.</p>
-
-<p>To combat this problem, <a href="http://en.wikipedia.org/wiki/VPN" title="Virtual Private Network">VPN</a>s were created. Basically, a VPN allows one to connect networks together as if they were local to each other. When I use my companies VPN, it's as if I'm sitting in the office.</p>
-
-<p>Often though, this isn't enough. When dealing with networks that clients own, they may provide us access through only one entry point, a single development server for instance, which is locked down.</p>
-
-<p>This is where SSH comes in handy. In the <a href="http://www.openssh.com/">OpenSSH</a> implementation of the SSH client tools, the <code class="inline">-L</code> option allows one to setup forwarding of traffic to another host. Suppose, I wanted to connect to a client's Oracle server, listening on port 1521:</p>
-
-<code>$ ssh -N -L 9999:clients.oracle.server.name:1521 user@your.companies.host
-</code>
-
-<p>Now instead of pointing our SQL*Plus client to <em>clients.oracle.server.name</em>:1521, we point it to localhost:9999, and traffic is forwarded via <em>your.companies.host</em> as if we were connecting directly from <em>your.companies.host</em>.
-</p>
-
-<p>This is extremely powerful, and simple.<a href="#f2">[2]</a></p>
-
-<h3>SOCKS Proxy</h3>
-
-<p>Similar to the tunnelling example above, OpenSSH can act like a <a href="http://en.wikipedia.org/wiki/SOCKS">SOCKS</a> proxy, allowing you to forward outbound traffic to a trusted source, which will then carry out the request on your behalf. This is <em>great</em> for browsing in public <a href="http://en.wikipedia.org/wiki/Wi-Fi" title="Wireless Fidelity">WI-FI</a> spots where attackers might be sniffing for passwords being sent in plain text over HTTP, or some other unencrypted protocol.<a href="#f3">[3]</a></p>
-
-<p>And, of course, setting it up is as easy as passing the <code class="inline">-D</code> option to ssh when connecting to you@remoteserver.</p>
-
-<code>$ ssh -N -D 8000 user@remoteserver</code>
-
-<p>Then, you can setup your computer (or web browser) to use a SOCKS proxy, and point it to localhost:8000.</p>
-
-<p>This isn't without its problems though. For one, the network could block all outbound traffic except HTTP/HTTPS. One obvious workaround is to have a remote server listening for SSH connections on port 143 or port 80, instead of the protocol default of 22. But, you'll of course need your own box, or <a href="http://en.wikipedia.org/Virtual_private_server" title="Virtual Private Server">VPS</a> for this, as your shared hosting account will probably not allow you to change sshd's listening port.<a href="#f4">[4]</a></p>
-
-<p>Of course, since SSH is a protocol for sending encrypted network traffic, there are <a href="http://www.ssh.com/support/documentation/online/ssh/adminguide/32/X11_Forwarding.html">many</a> <a href="http://unixwiz.net/techtips/ssh-agent-forwarding.html">other</a> uses for it. These are just the two alternatives I find the most useful lately.</p>
-
-<ol class="footnotes">
-<li id="f1">
-I use the <a href="http://www.ccil.org/jargon/jargon_23.html#TAG833">jargon file's</a> definition of hacker, not the commonly confused term <a href="http://www.ccil.org/jargon/jargon_18.html#TAG365">cracker</a>.
-</li>
-
-<li id="f2">
-It can of course get much, much more complicated
-</li>
-
-<li id="f3">
-Unencrypted WIFI traffic is extremely easy to capture, with a tool like <a href="http://www.tcpdump.org">tcpdump</a>
-</li>
-
-<li id="f4">
-The thought of a "loopback" SOCKS proxy, "loopback" tunnel or some combination of the two cannot work, as it would only ever forward traffic to your localhost's sshd, which would then forward traffic to the destination, unencrypted, over the local network&mdash;this is the exact situation we were trying to avoid. Plus, if you're trying to forward traffic in this way, over a port that's being blocked, it's still blocked.
-</li>
-</ol>
-]]></content></entry>
-<entry><title>The Power That is GNU Emacs</title><link href="/2009/Apr/30/the-power-that-is-gnu-emacs.html"/><id>md5:5956c986d4c2f11dbf3231b781690d06</id><updated>2009-04-30T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">If you've never been convinced before that <a href="http://www.gnu.org/software/emacs">Emacs</a> is the text editor in which dreams are made from, or that inside Emacs there are unicorns manipulating your text, don't expect me to convince you. 
-</span></p>
-
-<p>I'm not going to sit here and type out a Top 10 list of reasons <em>you</em> should be using GNU Emacs, nor am I going to tell you that you are an idiot for using VI (I was a hardcore, "down with emacs," VI user in the late 90s and early 00s). Instead, I'm going to talk about why Emacs works for <em>me</em>. If you're so inclined to give it a try after reading this, then so be it. Searching <a href="http://www.google.com/search?q=emacs+tutorial" title="Google Search Query for 'emacs tutorial'">Google</a> is bound to get you a ton of good information, or you could just start Emacs by typing <code class="inline">emacs</code> at the terminal and typing <code class="inline">C-h</code> (<code class="inline">C-</code> means hold down the control key and hit <code class="inline">h</code> [in this case]. <code class="inline">M-<em>key</em></code> means hold down the Meta key [ALT on most keyboards] and hit <code class="inline"><em>key</em></code>. If there's not a <code class="inline">-</code> between them, you can release Control or Meta before hitting the <em>key</em>).</p>
-
-<p>I first started using Emacs in the spring of 2003, when an acquaintance at the time suggested that Emacs was superior and that I could even use <a href="http://www.emacswiki.org/emacs/ViperMode" title="Viper Mode - VI keybindings for Emacs">viper-mode</a> to simulate VI. The idea that a text editor was powerful enough to simulate another caught my curiosity. I fired it up, and hit the backspace key. Within moments I was put off when the Emacs equivalent of <a href="http://en.wikipedia.org/wiki/Clippy">Clippy</a>, came to my rescue.</p>
-
-<p>See, Emacs responds logically to <code class="inline">C-h</code>, with "Help." The problem is that on many modern keyboards, the backspace key and <code class="inline">C-h</code> send the same value to the terminal.</p>
-
-<p>So, I fired up <a href="http://www.getfirefox.com">Phoenix</a> (or was it Firebird then? Maybe it was Fireweasel?) and searched Google for "emacs backspace problem." Within .004 seconds I had over 3 million pages telling me how to fix the problem. It said to add:</p>
-
-<code class="lisp">(global-set-key "\C-h" 'delete-backward-char)</code>
-
-<p>to my ~/.emacs file. So, I went to my terminal and did what anyone would have done in my situation&mdash;I typed <code class="inline">vi ~/.emacs</code>, pasted the snippet and <code class="inline">ESC :wq!</code>'d</p>
-
-<p>But, despite my trouble I was intrigued. First of all, I had never seen a Unix program configured the way it was. Why didn't Emacs just use something like <a href="http://en.wikipedia.org/wiki/INI_file">INI</a> files, or some other simple format? Later, I realized that I wasn't just configuring Emacs&mdash;no, I was <em>programming</em> the editor to behave the way <em>I</em> preferred.</p>
-
-<p>And, you'll say, "Well, how is that any different than configuration?" To, which I'll reply, "Every command you invoke, even the command that inserts the letter 'j' into this quote here, is calling a function written in the language I used before to set <code class="inline">C-h</code> to behave the way I preferred."</p>
-
-<p>You see, Emacs isn't a text editor. Emacs is a programming language that you can use to write your <em>own</em> text editor. That's why <code class="inline">viper-mode</code> exists. Someone used Emacs to write VI.</p>
-
-<p>And, as I read more about Emacs, and about all the editors people have written (that is to say, editors for writing C, Perl, Python, etc), I got more excited; that is until I discovered <code class="inline">M-x tetris</code>. Why does my editor need <a href="http://en.wikipedia.org/wiki/Tetris">Tetris</a>? It doesn't, and when I discovered more games, I got even more disgusted.</p>
-
-<p>I'm not going to lie&mdash;not even a little bit, in 2003, Emacs was slow. Machines were getting faster, <a href="http://en.wikipedia.org/wiki/RAM">RAM</a> like always was cheap, but it was torture to type <code class="inline">emacs <em>filename</em></code> more than once a day. The games, and all this bloat were obviously the cause right? Well no. It turns out that Emacs has smart ways to load code, so you can save your precious memory. As a naive user, though, I was a bit upset.</p>
-
-<p>So, off to Google again. "Google, How do I speed up Emacs?" "Well, my young Padawan," Google replied, "you should use the server. Add <code class="inline">(server-start)</code> (<code class="inline">M-x describe-function RET server-start RET</code> if you want more info) to your <code class="inline">~/.emacs</code> file and connect with <code class="inline">emacsclient</code>." This was a few days later, and I had a cheat sheet on my desk, so I didn't escape to the terminal and start up VI. This time, I knew to chord <code class="inline">C-x C-f</code>, make my changes and chord <code class="inline">C-x C-s</code>. Easy-peasy.</p>
-
-<p>The common theme here is that documentation for Emacs was easily accessible and there was a seemingly endless community of people answering questions about common pitfalls when getting started with Emacs. As a newbie, this fact made it extremely easy to want to continue learning, and as an advanced user today (can one ever gain the rank of Emacs expert?) this fact still draws me in.</p>
-
-<p>Emacs has since gotten faster as a result of extremely cheap processing power, but VI of course still wins in startup time. It's not a very good metric for comparing the two pieces of software though. For one, I mentioned that Emacs had a server that you could use to keep Emacs going and connect with <code class="inline">emacsclient</code>, but I should also mention that I hardly ever use it. Emacs has an extensive file browser (with tab-completion!), and support for editing multiple files (called buffers). The other thing Emacs has is a mode called <a href="http://www.gnu.org/software/tramp/">Tramp</a>, which allows Emacs to edit files over <a href="http://www.openssh.com/" title="Secure SHell">SSH</a>, <a href="http://en.wikipedia.org/wiki/FTP" title="File Transfer Protocol">FTP</a> and many more. Since this is the case, keeping one Emacs session alive forever makes startup time nil. VI, on the other hand encourages relaunching with new files. I'm fairly sure modern VIs support editing more than one file at once, but I'm also pretty convinced that most VI users know about 15 things about VI, and multiple file editing isn't one of them.</p>
-
-<p>The reason I even still have <code class="inline lisp">(server-start)</code> in my <code class="inline">~/.emacs</code> has to do with other utilities that need an editor. Invoking <code class="inline">emacsclient <em>filename</em></code> will open <code class="inline"><em>filename</em></code> in the Emacs instance that the server is running in. No startup lag&mdash;but you do unfortunately have to context switch.</p>
-
-<p>Naturally, the Emacs community has solved this problem of context switch for many common cases. One of the places where you're bound to need to startup an editor as a programmer is when interacting with <a href="http://en.wikipedia.org/wiki/Software_configuration_management" title="Source Control Management">SCM</a> tools such as <a href="http://subversion.tigris.org/">Subversion</a>, <a href="http://www.selenic.com/mercurial/wiki/">Mercurial</a> or <a href="http://git-scm.com/">Git</a>. These tools allow you to leave messages when you commit changes back to the repository. Committing is common, as is updating files and working with version control repositories in general, so it's only natural that your editor be version control aware. Emacs is, and uses <a href="http://www.emacswiki.org/emacs/VersionControl"><code class="inline">vc-mode</code></a>.</p>
-
-<p>And the more you think about interactions with computers the more you realize how much of it is still text based. <a href="http://en.wikipedia.org/wiki/IRC">IRC</a>, for instance is entirely text based, so why make it hard on yourself to switch back and forth between running programs when you can switch to an IRC buffer in Emacs? I do that, and it's wonderful.</p>
-
-<p>Todo lists, calendars, calculators, Emacs does it all. It's no wonder that mere mortals joke about Emacs, saying "I'm happy with my operating system, I just want a decent text editor!" I said the same thing, and once I tried it, and took the time to learn it, I could never go back.</p>
-
-<h3>Extending</h3>
-<p>Over the years, I've discovered lots of things about Emacs, and new modes to play with. There's a never ending list of things to play with on <a href="http://www.emacswiki.org">EmacsWiki</a> if you're so inclined.
-</p>
-
-<p>As a programmer, writing my own enhancements was a matter of learning a bit about <a href="http://en.wikipedia.org/wiki/Emacs_lisp">Emacs Lisp</a>, the <a href="http://en.wikipedia.org/wiki/Lisp_(programming_language)">Lisp</a> dialect that Emacs is built on. Coming from a background in C, Perl and at this point in time Python, I laughed at Lisp. "Why would anyone want to write that many parenthesis?" I've since come to the conclusion that Lisp is the most powerful set of programming languages available, but that is a topic for another day. (It is no coincidence, however that the most powerful text editor is built upon a dialect of the most powerful programming language.)</p>
-
-<p>One of the first things I extended Emacs with was a way to convert Windows text files, which use carriage return and a line feed to something more appropriate for editing on Unix (line feed only). I came up with this with some help from our friend Google:</p>
-
-<code class="lisp">(defun dos2unix ()
-  "Convert this entire buffer from MS-DOS text file format to UNIX."
-  (interactive)
-  (save-excursion
-    (goto-char (point-min))
-    (replace-regexp "\r$" "" nil)
-    (goto-char (1- (point-max)))
-    (if (looking-at "\C-z")
-        (delete-char 1))))
-</code>
-
-<p>I'm fairly certain that I didn't write that completely from scratch, and I know for certain that I lifted the <code class="inline">(if (looking-at...) ...)</code> from the Internet somewhere as I'm not even sure why I would want to delete <code class="inline">C-z</code> characters from the end of the file.</p>
-
-<p>Either way, the point is the same, now, without a context switch to the terminal, and the need to have the dos2unix package installed on my system, I can open a Windows text file and say, <code class="inline">M-x dos2unix</code>, and I'm in business.</p>
-
-<p>Another utility that I decided I needed was the ability to split the current window in a 3/4, 1/4 configuration, instead of the default 1/2, 1/2 that you get when you call <code class="inline">split-window</code>. The result looks something like this:</p>
-
-<code class="lisp">(defun three-quarters-window ()
-  "Resizes current window big"
-  (interactive)
-  (let ((size (- (truncate (* .75 (frame-height))) (window-height))))
-    (if (> size 0)
-        (enlarge-window size))))
-</code>
-
-<p>Bound to a key, <code class="inline">(global-set-key "\C-x7" 'three-quarters-window)</code>, makes it easy to keep an eye on an IRC buffer or something else that's changing a few lines at a time, while remaining relatively focused on the buffer you're really editing.</p>
-
-<p>As I continue to try out new major modes and spend time programming Emacs to behave the way I want it to, it's only natural that my <code class="inline">~/.emacs</code> file has become a bit large and hard to read. So I built something to fix it. I built something that allowed me to separate customizations into logical units. Basically, it works similarly to the <a href="http://en.wikipedia.org/wiki/Init">init</a> process from Unix.</p>
-
-<p>I call my version activator. It's basically a few functions and a few overridable variables that will load a set of files with a specifically formatted file name in some specific location on your file system.</p>
-
-<p>Using it is as simple as including a few lines in your <code class="inline">~/.emacs</code> file:</p>
-
-<code>;;;; Need to tell Emacs which directory has activator.el
-(setq load-path (cons <em>path to directory containing activator.el</em> load-path))
-(require 'activator)
-(activator-start)
-</code>
-
-<p>By default activator will look for files in <code class="inline">~/.emacs.d/activator.d/</code> with the file name format <code class="inline"><em>XX</em>description.el</code>, where <em>XX</em> is a two digit number used for dependency resolution. In other words, <code class="inline">00settings.el</code> will be loaded before <code class="inline">01utils.el</code> if you were to have those files in your activator load path.</p>
-
-<p>The code for doing this is surprisingly simple:</p>
-
-<code class="lisp">(defun activator-start ()
-  "Starts activator, thereby running all the files in `activator-load-path' 
-that match the `activator-filename-pattern`"
-  (interactive)
-  (if (not (boundp 'activator-load-path))
-      (error "Please set `activator-load-path`")
-    (mapcar 'activator-load-file (activator-get-files))))
-
-(defun activator-get-files (&optional path pattern)
-  "Gets files from path specified by `activator-load-path', or from the 
-optional path"
-  (let ((path (or path activator-load-path))
-        (pattern (or pattern activator-filename-pattern)))
-    (directory-files path t pattern)))
-
-(defun activator-load-file (file)
-  (load-file file))
-</code>
-
-<p>Of course, the <a href="http://gitorious.com/projects/emacs-configuration/repos/mainline/blobs/master/activator.el">real code</a> defines the variables <code class="inline">activator-filename-pattern</code> and <code class="inline">activator-load-path</code>, which must be overridden before <code class="inline">(activator-start)</code> is run, should you decide you want to change them.</p>
-
-<p>But, the real power in this is that I can rename configuration files to something that doesn't match the filename pattern if I don't want them to load, say because my configuration needs to be different at work, rather than at home. This makes my Emacs customizations pretty portable, and with a few more tweaks to the way activator works, I could make it even more portable.</p>
-
-<p>I'm not going to be naive and think that I'm the first one to come up with something like this. I know for sure I'm not, and the only reason I did it myself was for the exercise of writing Emacs Lisp. All my customizations to Emacs are loaded currently with activator on all the machines that I use Emacs on. It's pretty great.</p>
-
-<p>As a programmer who spends many hours a day using a text editor, the companionship that Emacs provides is a joy, and our relationship just keeps growing better as I uncover the stories and talents, my little friend has to share. </p>
-]]></content></entry>
-<entry><title>Dispatching With "with"</title><link href="/2009/Mar/04/dispatching-with-with.html"/><id>md5:c47b741e6d7072c9b14a6d5f74c671f1</id><updated>2009-03-04T08:15:00Z</updated><content type="html"><![CDATA[<p>
-<span class="preamble">Since <a href="http://www.python.org">Python</a> 2.5, we've had access to a new contstruct called the <a href="http://www.python.org/dev/peps/pep-0343/"><code class="inline">with</code></a>-statement. Using them is as simple as implementing the <a href="http://www.python.org/doc/2.5.2/lib/typecontextmanager.html">context manager protocol</a> for classes.
-</span>
-</p>
-
-<p>The <code class="inline">with</code>-statement makes it possible to factor our <code class="inline">try</code>/<code class="inline">finally</code> statements that are commonly used to clean up resources created temporarily. Suppose for example, you have a multi-threaded application that makes use of mutexes to guard shared information. As a general rule, once you lock and perform the update on the shared variable, you need to unlock. Failure to unlock can lead to horrible problems, such as starvation or some other inconsistent state. 
-</p>
-
-<p>And, what happens if an exception occurs before you unlock? Quite frankly, you're out of luck unless you use <code class="inline">try</code>/<code class="inline">finally</code> to clean up regardless of what happens. It might look something like this:</p>
-
-<code class="python">lock.lock()
-try:
-    # perform some action
-finally:
-    lock.unlock()
-</code>
-
-<p>This ensures that <code class="inline">lock</code> is unlocked after the action is performed.</p>
-
-<p>Now, using the <code class="inline">with</code>-statement we get something more like:</p>
-<code class="python">with lock:
-    # perform some action
-</code>
-
-<p>The beauty is that we don't have to worry about remembering to call <code class="inline">unlock</code>, or wrap it up in the <code class="inline">try</code>/<code class="inline">finally</code> block. It does it for us.</p>
-
-<p>But, we're not worried about locks here. We're interested in using <code class="inline">with</code> for another purpose, dispatching based on a requested url.</p>
-
-<h3>URL Dispatching</h3>
-
-<p>In many web frameworks these days for Python, such as <a href="http://webpy.org">web.py</a>, resources are dispatched to based on a regular expression that gets matched against the REQUEST_URI environment variable. This is normally pretty powerful, but in the case of web.py, the way this is specified is often a bit awkward. Take for instance:
-</p>
-
-<code class="python">import web
-
-urls = (
-    '/([a-zA-Z]*)', 'Hello'
-)
-app = web.application(urls, globals())
-
-class Hello:
-    def GET(self, name):
-        if not name:
-            name = 'world'
-        return "Hello,", name
-
-    def POST(self, name): # name can still be in the url
-        i = web.input(name='world')
-        return "You posted your name! Hello,", i.name
-
-if __name__ == '__main__':
-    app.run()
-</code>
-
-<p>which is a whole web application written in web.py. The awkwardness comes from the fact that the regular expression used for dispatch, is in no way connected to the resource itself. It'd be nice to use decorators for this so you could get something like:</p>
-
-<code class="python">@web.expose('/([a-zA-Z]*)')
-class Hello:
-    ...
-</code>
-
-<p>but Python didn't get class decorators til Python 3.0, which many people aren't using yet, the author included. And what's the logic behind <code class="inline">def GET(<strong>self</strong>, ...)</code>? It's required in Python, but is just extraneous when defining a resource for web.py.</p>
-
-<p>What if we implemented the context manager protocol in the object returned by <code class="inline">web.application()</code> above that looked like this (or something similiar):
-</p>
-
-<code class="python">import inspect
-    --snip--
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        frame = inspect.currentframe()
-        get = frame.f_back.f_locals.get('get', None)
-        post = frame.f_back.f_locals.get('post', None)
-        resource = {}
-        if get:
-            resource['get'] = get
-        if post:
-            resource['post'] = post
-
-        if not (post or get):
-            raise ValueError("with must have a get or post function")
-        self._resources.append((re.compile(self._last_url), resource))
-
-        if get:
-            del frame.f_back.f_locals['get']
-        if post:
-            del frame.f_back.f_locals['post']
-
-    def expose(self, url):
-        self._last_url = url
-        return self
-
-    ...
-</code>
-
-<p>Then, the simple hello application instead looks like:</p>
-
-<code class="python">import web
-
-app = web.application()
-
-with app.expose('/([a-zA-Z]*)'):
-    def get(name):
-        if not name:
-            name = 'world'
-        return "Hello,", name
-
-    def post(name):
-        i = web.input(name='world')
-        return "You posted your name! Hello,", i.name
-
-if __name__ == '__main__':
-    app.run()
-</code>
-
-<p>It's declarative, simple, and eliminates a lot of noise, but we no longer get the packaging, or the ability to easily seperate our resources into multiple files. But, for one file web apps, maybe it's useful.</p>
 ]]></content></entry>
 
 </feed>

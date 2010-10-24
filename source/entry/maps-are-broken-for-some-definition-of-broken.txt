@@ -1,6 +1,7 @@
 title: Maps are Broken, for Some Definition of Broken
 date: 2010-06-22
 tags: algorithms, java, python, rant
+comments: True
 ---
 <p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
 
@@ -52,6 +53,7 @@ tags: algorithms, java, python, rant
 }
 </code></pre>
 
+
 <p>This sort of thing isn't necessarily true for dynamic languages like Python which normally have ways to iterate over keys in a map, dictionary or set. They still don't have a way to get a random element from either out of the box without resulting to the <code class="inline">O(n)</code> iteration method, or converting to a list and using a random index approach.</p>
 
 <pre><code>&gt;&gt;&gt; import random
@@ -74,3 +76,17 @@ KeyError: 2
 <p>And of course that makes sense given how <code class="inline">random.choice</code> is implemented, since there's not necessarily  an order for the elements of a set or dictionary, so you can't expect to subscript them. However they do provide an order when iterating over them and traversing the structure they exist in, so you could certainly use the same <code class="inline">O(n)</code> approach from above.</p>
 
 <p>If there's some other less obvious way to do this in Java using a <a href="http://en.wikipedia.org/w/index.php?title=Dependency_injection&oldid=260831402#A_code_illustration_using_Java">EnterpriseFactoryObserverFactoryFactoryCreator</a>, please leave a comment.</p>
+
+
+<p><strong>Update: I overlooked something important, which was pointed out by <a href="http://news.ycombinator.com/item?id=1452619">gojomo</a> on Hacker News. Set, which is returned from <code class="inline">keySet()</code> on HashMap, has an iterator. Thus:</strong></p>
+
+<pre><code>public String randomKey() {
+    int index = random.nextInt(map.size());
+    for (String key: map.keySet()) {
+        if (index-- == 0) {
+            return key;
+        }
+    }
+    return null;
+}
+</code></pre>
