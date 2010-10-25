@@ -36,4 +36,14 @@ comments: True
    <dt>
       <q><a href="http://www.amazon.com/gp/product/0691023565?ie=UTF8&amp;tag=siusdesi2-20&amp;linkCode=as2&amp;camp=1789&amp;creative=390957&amp;creativeASIN=0691023565">How to Solve It: A New Aspect of Mathematical Method</a></q>&mdash;G. Polya
    </dt>
+   <dt><strong>Updates and other suggestions</strong></dt>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/1589880366?ie=UTF8&tag=siusdesi2-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=1589880366">Infinity: Beyond the Beyond the Beyond</a>&mdash;Lillian R. Lieber</q>
+   </dt>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/1589880331?ie=UTF8&tag=siusdesi2-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=1589880331">The Education of T.C. Mits: What modern mathematics means to you</a>&mdash;Lillian R. Lieber</q>
+   </dt>
+   <dt>
+      <q><a href="http://www.amazon.com/gp/product/1589880447?ie=UTF8&tag=siusdesi2-20&linkCode=as2&camp=1789&creative=390957&creativeASIN=1589880447">The Einstein Theory of Relativity: A Trip to the Fourth Dimension</a></q>&mdash;Lillian R. Lieber
+   </dt>
 </dl>
