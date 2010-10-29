@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged hack</title><link href="http://sigusr2.net/tags/hack.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2010-10-29T07:38:13Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Pattern Matching with "With"</title><link href="/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
+<span class="preamble">When I originally thought about adding pattern matching to Python, in the <a href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html">OCaml sense</a>, I ended up using a decorator that more or less registed a bunch of callbacks with a dispatch table based on the types of it's arguments.</span>
+</p>
+
+<p>That worked out fine, but it didn't really have the feel of <a href="http://en.wikipedia.org/wiki/Pattern_matching">pattern matching</a> like you get with real <a href="http://en.wikipedia.org/wiki/Algebraic_data_type">algebraic data types</a>. If you recall, I was playing with the following example with the decorator approach:
+</p>
+
+<pre><code class="ocaml">type astnode = 
+| AndNode of astnode * astnode
+| OrNode of astnode * astnode
+| NotNode of astnode 
+| IdNode of bool
+
+let rec eval_node (n: astnode) = 
+  match n with
+  | AndNode (l, r) -> (eval_node l) && (eval_node r)
+  | OrNode (l, r) -> (eval_node l) || (eval_node r)
+  | NotNode l -> not (eval_node l)
+  | IdNode v -> v
+
+eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
+</code></pre>
+
+<p>The idea of that program was to create a small language to evaluate boolean expressions. In OCaml, it's quite succinct&mdash;too succinct, in all honesty. That's it. Of course it doesn't include a parser, or a lexer, but that's the crux of it.
+</p>
+
+<p>Since that original post, I've posted about two other <q>language hacks</q> that I've attempted to create&mdash;both of which use <a href="http://www.python.org/dev/peps/pep-0343/">context managers</a> and the <code class="inline">with</code>-statement, <a href="http://sigusr2.net/2009/Oct/01/python-worlds.html">worlds</a> and <a href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html">dispatching urls (a la routes)</a>.</p>
+
+<p>Basically, it occurred to me yesterday, that <code class="inline">with</code>'s <code class="inline">as</code> clause did destructuring of tuples, in the same way that the assignment statement does. That is to say:</p>
+
+<pre><code class="python">a, b, c = 1, 2, 3</code></pre>
+
+<p>Will correctly assign <code class="inline">a = 1</code>, <code class="inline">b = 2</code>, <code class="inline">c = 3</code>, in the same exact way that:</p>
+
+<pre><code class="python">from contextlib import contextmanager
+@contextmanager
+def assign(*args):
+    yield args
+
+with assign(1, 2, 3) as (a, b, c,):
+    pass
+</code></pre>
+
+<p>will assign <code class="inline">a = 1</code>, <code class="inline">b = 2</code>, <code class="inline">c = 3</code>.</p>
+
+<p>I'll admit, that doesn't look very powerful by itself, but when you consider the possibilities, you might come up with something like I did:</p>
+
+<pre><code class="python">with structural_matching((1, 2, 3)) as match:
+    with match('list() x y z') as (x, y, z):
+        print x, y, z
+    with match('tuple() x _ z') as (x, z):
+        print "tuple case"
+        print x, z
+</code></pre>
+
+<p>which looks incredibly close to pattern matching in OCaml. I was super excited&mdash;but it won't work.</p>
+
+<p>See, <code class="inline">match</code> is a context manager that gets returned with the intention that if the <code class="inline">__enter__()</code> method raises a <code class="inline">NoMatch</code> exception, it skips the "body" and goes to the next match. The problem with that thinking however is simple&mdash;there's no way for <code class="inline">__enter__</code> to force skipping the body due to rejected <a href="http://www.python.org/dev/peps/pep-0377/">PEP-377</a>!</p>
+
+<p>In the example above (full source <a href="http://files.sigusr2.net/match1.py">here</a>), raising <code class="inline">NoMatch</code> in the first <code class="inline">match</code> block, results in control being passed back to the <code class="inline">__exit__()</code> of the outer context manager&mdash;<code class="inline">structural_matching</code>. And to think, I got my hopes up!</p>
+
+<p>But nevertheless, I pressed on, and hacked <a href="http://files.sigusr2.net/match2.py">together</a>, a <code class="inline">match</code>, that can destructure the following examples correctly:</p>
+
+<pre><code class="python">with match('[1:3]', [1, 2, 3, 4]) as (a,):
+    print a
+# [2, 3]
+
+with match('[1:]', "hello world") as (a,):
+    print a
+# ('e', 'ello world')
+
+with match('str() x y', 'hello world') as (h, e):
+    print 'h = ', h, ',',
+    print 'e = ', e
+# h = h, e = e
+
+with match('x y z', [1, 2, 3]) as (x, y, z,):
+    print z, y, x
+# 3 2 1
+
+class obj(object):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+with match('obj() .x .y', obj('x-ity', 'y-ity')) as (x, y):
+    print 'x = ', x, ',',
+    print 'y = ', y
+# x = x-ity, y = y-ity
+
+with match('x y _', [1, 2, 3]) as (x, y):
+    print x, y
+# 1, 2
+</code></pre>
+
+<p>It's much less useful considering you can't put it in the <code class="inline">structural_match</code> block ,like you would in a <em>real</em> <code class="inline">match</code> statement, but it's all we've got.</p>
+
+<p>Back then, I concluded with <q>This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</q> Today, I'll conclude the same way.</p>
+]]></content></entry>
+
+</feed>

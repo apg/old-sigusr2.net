@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged game-of-life</title><link href="http://sigusr2.net/tags/game-of-life.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2010-10-29T07:38:13Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Google Spreadsheets: Game of Life</title><link href="/2010/Jun/25/google-spreadsheets-game-of-life.html"/><id>md5:026e9ae419696af7421a97f140a267e1</id><updated>2010-06-25T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Google Docs has become an incredibly useful tool for businesses looking to cut costs on software and infrastructure, and it just keeps getting better.</span></p>
+
+<p>For years, many businesses were tied to Microsoft Windows due to macros that they made use of in Excel and Word, but that's about to change. Recently, Google Spreadsheets released "<a href="http://www.google.com/google-d-s/scripts/scripts.html">Apps Script</a>," which allows you to extend Spreadsheets and/or integrate other Google products like Calendar.</p>
+
+<p>Apps Scripts are written in JavaScript and the environment provides you with a bunch of different <a href="http://www.google.com/google-d-s/scripts/guide_chapter_01.html">services</a>, which allow you to access your contacts, maps, XML, fetch URLs from the Internet, get Google finance information, send email&mdash;all sorts of things that make it possible to create complicated workflows and applications. I can imagine that there will be a marketplace sometime soon, which will be bustling with great apps to buy and use.</p>
+
+<p>For now though, you're on your own.</p>
+
+<p>Anyway, yesterday, Google had a hackathon, and because I had no real business oriented application ideas I thought I'd make a game. The trouble is, all processing is done on the server side, so real time interaction is a bit difficult&mdash;if not impossible. There are timer events, form events and menu events, but you can't bind a key or anything like that&mdash;at least not that I know of.</p>
+
+<p>So, a game like Tetris or Snake was out, but not Conway's classic <a href="http://en.wikipedia.org/wiki/Conway's_Game_of_Life">Game of Life</a>. The Game of Life is a zero-player game in which the initial board evolves to form interesting patterns or disappears into nothing. It's normally drawn on a grid of some sort, so I thought a spreadsheet was appropriate.</p>
+
+<p><img src="http://files.sigusr2.net/images/game-of-life-gosper.png" /></p>
+
+<p>I've put the source code up on <a href="http://github.com/apgwoz/app-script-game-of-life">GitHub</a>, along with some more instructions if you wanna check it out. Fork it.</p>
+]]></content></entry>
+
+</feed>

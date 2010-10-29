@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged api</title><link href="http://sigusr2.net/tags/api.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2010-10-29T07:38:13Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Remote Objects</title><link href="/2009/Nov/20/remote-objects.html"/><id>md5:c613f9f24fe2f9428acc9780d5c39573</id><updated>2009-11-20T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
+
+<p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
+
+<p>Right away I hit one. The data models for these 2 very different pieces of software are insanely different (who knew?). Roundup makes <em>use of</em> a <a href="http://en.wikipedia.org/wiki/SQL">SQL</a> database, but not in a traditional way. And, activeCollab combines almost all of its entities into one table. This of course makes querying with SQL incredibly difficult, and a SQL to SQL translation close to impossible.</p>
+
+<p>Luckily, in moving to activeCollab, we inherited a somewhat <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">RESTful</a>, API that allows for the modification and creation of entities. As a result, it became apparent that the logical way to migrate this was to pull the data out using the Roundup's libraries and make the appropriate API calls with the translated data.</p>
+
+<p>To make it easy on myself, I developed a quick <a href="http://en.wikipedia.org/wiki/Object_relational_mapper">ORM</a>-like interface to the APIs. I had the idea that if I could make it work for activeCollab, it must be generalizable enough to work for other services and APIs as well, which I could do later.</p>
+
+<p>And, I was right. It could be more generalized, and it could be useful. In fact, the idea was so useful that 3,000 miles away in the San Francisco office someone else was already secretly working on the same idea!</p>
+
+<h3>Enter Remote Objects</h3>
+
+<p>The result of the secretive effort, that I became aware of, is called <a href="http://github.com/sixapart/remoteobjects/">Remote Objects</a>, which identifies itself as <q>An object RESTational model.</q> <a href="http://sixapart.com/">Six Apart</a> has graciously released it as part of the requirements to run <a href="http://www.typepad.com/go/motion">TypePad Motion</a>, which is also available, under a <a href="http://en.wikipedia.org/wiki/BSD_License">BSD License</a>, on <a href="http://github.com/sixapart/typepad-motion">github</a>.</p>
+
+<p>But, just because its main intentions were for being used against the <a href="http://developer.typepad.com/api/rest.html">TypePad APIs</a>, doesn't mean that it <em>only</em> works with them.</p>
+
+<p>In fact, the developers had the foresight to think that this would be useful in other cases too, just as I did, as can be seen in the <a href="http://github.com/sixapart/remoteobjects/tree/master/examples">examples</a> that come with the package.</p>
+
+<p>Needless to say, I abandoned my implementation of this idea and will adopt Remote Objects in the future. Have a look. Hopefully it is useful in your toolbox too.</p>
+]]></content></entry>
+
+</feed>
