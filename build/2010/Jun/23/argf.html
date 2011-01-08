@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta name="ROBOTS" content="all" />
+    <meta name="googlebot" content="noodp" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="Andrew Gwozdziewycz" />
+    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
+    <link rel="shortcut icon" href="/favicon.ico" />        
+
+    <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
+    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
+    <title>SIGUSR2 
+ &gt; Code Blogging: ARGF in Python
+</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
+    </div>
+    <div id="content-wrapper" class="clearfix">
+      <div id="content">
+        
+<h2>Code Blogging: ARGF in Python</h2>
+<h4>June 23, 2010 <span class="permalink"><a href="/2010/Jun/23/argf.html" title="permalink">#</a></span></h4>
+<pre><code class="python">"""ARGF from Ruby in Python.
+Released into the public domain by Andrew Gwozdziewycz, 2010
+"""
+
+import sys, os
+
+
+class _ARGF(object):
+
+    def __init__(self):
+        self.lineno = 0
+        self.file = None
+
+    def __iter__(self):
+        return self.next()
+
+    def next(self):
+        files = filter(os.path.isfile, sys.argv[1:])
+        pairs = [(f, open(f)) for f in files] \
+            if files else [('STDIN', sys.stdin)]
+            
+        for name, fobj in pairs:
+            self.file = name
+
+            for line in fobj.xreadlines():
+                self.file = 'STDIN'
+                self.lineno += 1
+                yield line
+
+ARGF = _ARGF()
+</code></pre>
+
+<p><strong>Update:</strong> It was pointed out that I didn't handle <code class="inline">lineno</code> correctly; I fixed it.</p>
+
+
+<h5 class="tag-list">Tagged: 
+  <a href="/tags/python.html">python</a>
+     , <a href="/tags/code-blogging.html">code-blogging</a>
+     
+</h5>
+
+<div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/sigusr2/embed.js"></script><noscript><a href="http://sigusr2.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </div>
+      <div id="sidebar">
+        <h2>About</h2>
+        <p>
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
+        </p>
+        <p>
+          You should follow me on <a href="http://twitter.com/apgwoz">Twitter</a>.
+        </p>
+	<h2>Inside</h2>
+	<ul>
+          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
+	</ul>
+       <ul>
+          <li>
+       <!--Ad Bard advertisement snippet, begin -->
+       <script type='text/javascript'>
+          var ab_h = '65997c9b7b5981e3cf2ebec769eea096';
+          var ab_s = '7a46f7b695d2481693fe4724f778884a';
+       </script>
+       <script type='text/javascript' src='http://cdn1.adbard.net/js/ab1.js'></script>
+       <!--Ad Bard, end -->
+          </li>
+       </ul>
+
+        <h2>Syndicate</h2>
+        <ul>
+          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
+        </ul>
+        <h2>Archives</h2>
+        <ul>
+        
+        <li><a href="/2011/Jan/" title="January 2011 (1)">January 2011 (1)</a></li>
+        
+        <li><a href="/2010/Nov/" title="November 2010 (1)">November 2010 (1)</a></li>
+        
+        <li><a href="/2010/Oct/" title="October 2010 (3)">October 2010 (3)</a></li>
+        
+        <li><a href="/2010/Jun/" title="June 2010 (3)">June 2010 (3)</a></li>
+        
+        <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (1)">January 2009 (1)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer">
+       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
+    </div>
+  </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-354660-9");
+pageTracker._trackPageview();
+</script>
+</body>
+</html>

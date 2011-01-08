@@ -28,145 +28,140 @@
         
 <div class="list-post">
 
-<h2>ant.el: A Code Walkthrough</h2>
-<h4>October 29, 2010 <span class="permalink"><a href="/2010/Oct/29/ant-el-a-code-walkthrough.html#disqus_thread" title="permalink">#</a></span></h4>
-<p><span class="preamble">In April of last year, I blogged about <a href="http://sigusr2.net/2009/Apr/30/the-power-that-is-gnu-emacs.html">how powerful Emacs</a> is, and shared my enlightenment story.</span></p>
+<h2>Softserv Serves Requests</h2>
+<h4>January 07, 2011 <span class="permalink"><a href="/2011/Jan/07/softserve-serves-requests.html#disqus_thread" title="permalink">#</a></span></h4>
+<p>
+   <span class="preamble">Anyone that knows me knows that I have a lot of projects, most of which are in some sort of unfinished but partially functional state. Then there are others that have a solid 0.1 release, maybe lacking documentation, but usable. There are yet others that never make it to 0.1, and despite my happy thoughts about how this piece of code will change the world, or be the future, it's as good as deadpooled.</span>
+</p>
 
-<p>Today, I'm even closer to Emacs than I was before, having an extra year and a half of experience than I did then. My daily interactions with Emacs are still very much in the same vain&mdash;I am still a programmer after all, but I've also discovered some more frustrations which were fairly easy to rectify.</p>
+<p>
+One project that will certainly not be deadpooled is being developed in my 10% time at work, though on hiatus whilst I resolve some other issues that I inadvertently committed and finish up some other tasks that have higher priority.
+</p>
 
-<p>In July of this year, I started <a href="http://www.meetup.com/">a new job</a><sup><a href="#hiring-1">[1]</a></sup>. My role at Meetup has been different in many regards than my previous jobs. It's the first role I've had since entering into the industry that someone doesn't see the output of my code. In fact, if they do see the output of my code, I've sort of failed.<sup><a href="#output-2">[2]</a></sup> It also represents the first time that I've primarily used a compiled language (outside of college), targetted the <a href="http://en.wikipedia.org/wiki/JVM">JVM</a> and used <a href="http://java.sun.com/">Java</a> for the bulk of my work.</p>
+<p>But, I don't wanna discuss that project right now, it is in a sort of discovery phase where I'm attempting to iron out the network protocol, and what functionality it actually provides for its initial run<sup><a href="#note-nonblocking">[1]</a></sup>.</p>
 
-<p>Naturally, Emacs could help me. <a href="http://www.gnu.org/software/emacs/manual/html_node/emacs/Compilation-Mode.html">Compilation Mode</a>, for instance allows you to do <code class="inline">M-x compile</code> to run <a href="http://en.wikipedia.org/wiki/Make_(software)">make</a>, or <a href="http://ant.apache.org/">ant</a> (with <code class="inline">-emacs</code>) or some other build tool that generates compilation mode compatible output, that the mode will then mark up and allow you to easily jump to places the compiler thinks<sup><a href="#errors-3">[3]</a></sup> are errors.</p>
+<p>It does, however, do what many servers do&mdash;listen to and accept requests via a socket.</p>
 
-<p>Compilation Mode by default is fine, but complicated Java source trees are normally nested quite complexly and ant isn't the greatest at locating a suitable build file. What I needed were some interactive functions that I could use to run ant properly, in Compilation Mode using the project's build file. What I <a href="http://github.com/apgwoz/ant-el">came up with</a> after a few hours, works fairly well.</p>
+<p>Clojure comes with many ways, of course, to do just that. It is certainly possible to use one of the many frameworks for Java for writing servers, but clojure.contrib/server-socket, looked to be exactly what I needed, and I decided to have a look.</p>
 
-<p>Basically, instead of <code class="inline">M-x compile</code>, I type <code class="inline">M-x ant</code>, or <code class="inline">M-x ant-compile</code>, or <code class="inline">M-x ant</code> and then TAB complete all the available build targets. This allows me to save some typing, and save some precious brain cells, since I don't have to remember all 40 build targets.</p>
+<p>When evaluating any sort of library, the first thing I always do is create something simple that makes use of it. This is not uncommon of course, and the "Hello World" of network programming is the trusted echo server, in which, everything you say will be parroted back to you. That's pretty simple using server-socket:</p>
 
-<p>The code is fairly simple, and I think it's a great candidate for a walk through on how to solve your own problems using Emacs Lisp, so I'd like to go through it here.</p>
+<pre><code class="clojure">(ns echo
+  (:require [clojure.contrib.server-socket :as ss]
+            [clojure.contrib.duck-streams :as ds]))
 
-<p>The code starts out simply enough:</p>
+(defn echo-server [in out]
+  (binding [*in* (ds/reader in)] <a href="#note-with-in-reader"><sup>[2]</sup></a>
+     (ds/with-out-writer out
+        (println (read-line)))))
 
-<pre><code class="elisp">(defvar ant-last-task "compile")
-(defvar ant-build-file-name "build.xml")
-(defvar ant-command "ant -emacs")
-(defvar *ant-tasks-cache* '())
-(defvar *ant-tasks-command* "grep -e '&lt;target.*name=\"[^\-][^\"]*.*$'")
-(defvar ant-tasks-default '("compile" "test" "clean"))</code></pre>
+(ss/create-server 1025 echo-server)
 
-<p>We just define a bunch of global variables that can be overridden by a user if they need to be. We do however create <code class="inline">*ant-tasks-cache*</code> and <code class="inline">*ant-tasks-command*</code> which are meant to be internal state. In elisp, and other Lisps, wrapping * around a variable normally indicates that the variable is special in someway, here it means it's a global and shouldn't be modified outside of the functions defined within.</p>
+(comment
+$ echo "HELLO WORLD" | nc 127.0.0.1 1025
+HELLO WORLD
+$ 
+)</code></pre>
 
-<p>Next we have a helper function, <code class="inline">ant-find-tasks</code>, which, given a directory, issues a shell command <code class="inline">*ant-tasks-command*</code> that is used to extract the lines from the ant build file that declare targets:</p>
+<p>Simple enough, but it is unfortunately <em>too</em> simple. For one, it creates a thread per connection, which is just asking for trouble with a public server. Secondly, since it only gives you an <code class="inline">InputStream</code> (<code class="inline">in</code>) and an <code class="inline">OutputStream</code> (<code class="inline">out</code>), there isn't a way to log who connected, or anything about the user who connected other than time. Hell, there's nothing guaranteeing that you're even connecting via a network for this!</p>
 
-<pre><code class="elisp">(defun ant-find-tasks (directory)
-  (let ((output (shell-command-to-string (concat *ant-tasks-command* " "
-                                                 directory "/"
-                                                 ant-build-file-name))))
-    (if (> (length output) 0)
-        (mapcar '(lambda (x) (replace-regexp-in-string ".*&lt;target.*name=\"\\([^\-][^\"]*\\).*" "\\1" x)) 
-                (split-string output "[\n]"))
-      nil)))</code></pre>
+<p>Now, I understand that <code class="inline">server-socket</code> was not really meant for production use&mdash;it is meant for quick toying around, and testing out ideas as quickly as possible, something it does extremely well, but with a little bit of modification, I think it can be almost just as simple and still be suitable for production use.
 
-<p>Essentially, we first save the output of the shell command that gets built up to the variable <code class="inline">output</code>. If the length of <code class="inline">output</code> is greater than 0, we split the output (<code class="inline">split-string</code>) into individual lines, and iteratively replace the junk in the line with just the name of the target (<code class="inline">replace-regexp-in-string</code>). The only non-obvious thing in here is <code class="inline">mapcar</code> which is a fancy way of transforming a list into another list via the function passed as the first argument.</p>
+<p>Enter <a href="http://github.com/apgwoz/softserv">softserv</a>, a still simple, but slightly more complicated replacement for server-socket.</p>
 
-<p>That gives us all the tasks defined in the build file&mdash;well for most cases anyway. It doesn't handle all possible, valid build.xml files, but should work if the <code class="inline">target</code>'s declaration and name attribute appear on the same line.</p>
+<p>So what is more complicated about it? Let's look at "Hello World" and find out:</p>
 
-<p>When we need a list of tasks for a project, we call <code class="inline">ant-tasks</code>. This function really just caches the returned value of <code class="inline">ant-find-tasks</code> into the global variable <code class="inline">*ant-tasks-cache*</code> for the current project:</p>
+<pre><code class="clojure">(ns echo
+  (:use [softserv.core :only (create-server
+                              defservice
+                              defhandler
+                              with-shutdown)])
+  (:require [clojure.contrib.duck-streams :as ds]))
 
-<pre><code class="elisp">(defun ant-tasks (directory)
-  (let ((tasks (assoc-string directory *ant-tasks-cache*)))
-    (or tasks
-        (progn 
-          (let ((newtasks (or (ant-find-tasks directory) ant-tasks-default)))
-            (setq *ant-tasks-cache*
-                  (cons (cons directory newtasks) *ant-tasks-cache*))
-          newtasks)))))</code></pre>
+(defn echo-parser [s]
+  (binding [*in* (ds/reader s)]
+    (:data (read-line) :type :echo)))
 
-<p>The only interesting thing about the above code is the use of <code class="inline">or</code>. In Lisp, <code class="inline">or</code> short circuits and returns the first truthy value&mdash;it doesn't convert it to a boolean, so it can easily be used to select the first truthy value from a list of values. That's what's happening there.</p>
+(defservice echo-server :type echo-parser)
 
-<p>I mentioned that I wanted TAB completion on task names so as to not clutter my brain matter with useless task names:</p>
+(defhandler echo-server :echo
+  [s req]
+  (with-shutdown s
+    (ds/with-out-writer s
+      (println (:data req)))))
 
-<pre><code class="elisp">(defun ant-get-task (directory)
-  (let ((task (completing-read-multiple (concat "Task (default): ") 
-                                        (ant-tasks directory))))
-    (if (> (length task) 0)
-        (mapconcat 'identity task " ")
-      "")))</code></pre>
+(create-server 1025 echo-server 10)
 
-<p>Well, here it is. Emacs has built in completion via the <code class="inline">completing-read</code> function. Here, we want the ability to issue one or more tasks, so we use <code class="inline">completing-read-multiple</code> to get the job done. Notice we're calling our function from above, <code class="inline">ant-tasks</code>.</p>
+(comment
+$ echo "HELLO WORLD" | nc 127.0.0.1 1025
+HELLO WORLD
+)</code></pre>
 
-<p>You'll notice <code class="inline">mapconcat</code> above. It's like <code class="inline">mapcar</code> from above, in that it takes a list of things and transforms them, but instead of returning a new list, it concatenates the elements into a string using the last argument (here just a space) as a separator. <code class="inline">completing-read-multiple</code> returns to us a list, which we need to turn into a string with spaces between the targets in order to issue the build command.</p>
+<p>Phew! That was a mess of code to write to get a simple echo server, surely softserv isn't so, well, soft? Just look at what we've gained, though!</p>
 
-<pre><code class="elisp">(defun ant-find-root (indicator)
-  (let ((cwd default-directory))
-    (while (and (not (file-exists-p (concat cwd indicator)))
-                (not (string-equal (expand-file-name cwd) "/")))
-      (setq cwd (concat cwd "../")))
-    (if (file-exists-p (concat cwd indicator))
-        (expand-file-name cwd)
-      nil)))</code></pre>
+<p>First and foremost, we've gained the ability to specify a maximum number of threads to create. That's what the <code class="inline">10</code> is for in <code class="inline">create-server</code>. Softserv executes request handlers in a thread pool. This of course has some limitations over the thread-per-connection model (like making it harder to allow for long running session based servers), but for resource constrained single request services, it's probably a plus. Maybe relaxing this requirement and figuring out an appropriate way to handle long running connections is a good next step.</p>
 
-<p>The above function locates the base directory of the project, given the current file being edited. It just loops up the file system looking for the first directory it finds that has a build file in it. When I originally wrote this function, I didn't realize that Emacs already had this functionality built into it with the function <code class="inline">locate-dominating-file</code>.<sup><a href="#dominating-4">[4]</a></sup>
+<p>Secondly, and without any hit in the number of symbols or parentheses, we're passing an actual socket object to the function that does the handling. You'd think that we'd have to call <code class="inline">(.getInputStream s)</code>, but <code class="inline">duck-streams</code> knows how to get an <code class="inline">InputStream</code> for a <code class="inline">Socket</code>. This is almost identical to the original example.</p>
 
-<p><code class="inline">ant-kill-cache</code>,</p>
+<p>Third, and most importantly, we've made it possible to dispatch based on the type of request. Softserv enforces what you'd have done anyway. The handler function that <code class="inline">server-socket/create-server</code> takes in almost all cases will end up being a <code class="inline">cond</code> statement dispatching to other functions. Softserv just makes that explicit and up front.</p>
 
-<pre><code class="elisp">(defun ant-kill-cache ()
-  (interactive)
-  (setq *ant-tasks-cache* '()))</code></pre>
+<p>Enough chatter, how can I make use of it? Well, our echo server would be much more interesting if in fact we echoed back more interesting things. For instance, we could translate the input, or rot-13 the input, or for ease of illustrative purposes echo back the actual date, a more useful echo, when someone sends the string "DATE".</p>
 
-<p>does exactly what it says it does. It destroys the cache that is built up from <code class="inline">ant-tasks</code>.
+<pre><code class="clojure">(ns echo
+   (:use [softserv.core :only (create-server
+                               defservice
+                               defhandler
+                               with-shutdown)])
+<span style="color: red;">-  (:require [clojure.contrib.duck-streams :as ds]))</span>
+<span style="color: green;">+  (:require [clojure.contrib.duck-streams :as ds])</span>
+<span style="color: green;">+  (:import [java.util Date]))</span>
 
-<p>The main entry point, <code class="inline">ant</code>, is fairly trivial as well. It sets the variable <code class="inline">default-directory</code>, which is Emacs' current working directory, to the project directory, reads a task from the reader (if being called interactively) and calls <code class="inline">compile</code>, which is the main entry point into Compilation Mode.</p>
+(defn echo-parser [s]
+  (binding [*in* (ds/reader s)]
+<span style="color: red;">-    (:data (read-line) :type :echo)))</span>
+<span style="color: green;">+    (let [l (read-line)]</span>
+<span style="color: green;">+      (assoc {:data l} :type (if (= l "DATE") :date :echo)))))</span>
 
-<pre><code class="elisp">(defun ant (&optional task)
-  "Run ant `task` in project root directory."
-  (interactive)
-  (let ((default-directory (ant-find-root ant-build-file-name)))
-    (if default-directory
-        (let ((task (or task (ant-get-task default-directory))))
-          (setq ant-last-task task)
-          (compile (concat ant-command " " task)))
-      (message "Couldn't find an ant project."))))</code></pre>
+(defservice echo-server :type echo-parser)
 
-<p>In the first code block, there was a variable, <code class="inline">ant-last-task</code>, defined that is used above to store the last target run. After a target is given, it's saved off in there.</p>
+<span style="color: green;">+(defhandler echo-server :date</span>
+<span style="color: green;">+  [s req]</span>
+<span style="color: green;">+  (with-shutdown s</span>
+<span style="color: green;">+    (ds/with-out-writer s</span>
+<span style="color: green;">+      (println (str (Date.))))))</span>
 
-<pre><code class="elisp">(defun ant-last ()
-  "Run the last ant task in project"
-  (interactive)
-  (ant (or ant-last-task "")))
+(create-server 1025 echo-server 10)
 
-(defun ant-compile ()
-  (interactive)
-  (ant "compile"))
+(comment
+$ echo "HELLO WORLD" | nc 127.0.0.1 1025
+HELLO WORLD
+$ echo "DATE" | nc 127.0.0.1 1025
+Wed Jan 05 08:29:38 EST 2011
+)
+</code></pre>
 
-(defun ant-clean ()
-  (interactive)
-  (ant "clean"))
+<p>Using a single request parsing function of course has its limitations, but in general, network services are not the type of thing that really have diverse request types. The protocol normally allows you to tell within a few bytes what kind of request it is. In the case of softserv servers the handlers can then finish reading the request and taking the appropriate actions.</p>
 
-(defun ant-test ()
-  (interactive)
-  (ant "test"))</pre></code>
-
-<p>The rest of the code above, just defines some convenient, interactive commands for common targets. <code class="inline">M-x ant-compile</code> will just issue the compile target, likewise for <code class="inline">ant-clean</code>. The only moderately interesting interactive command here is <code class="inline">ant-last</code> which reuses the variable <code class="inline">ant-last-task</code> from above to redo the last compilation.</p>
-
-<p>It doesn't feel like much code, and in all reality it's not. However, it has saved me quite a bit of time, as I don't have to go running to a terminal (either switching buffers, or switching windows entirely) in order to issue an ant task. I just do something I've grown very accustomed to&mdash;I issue another Emacs command, and let Emacs take care of it for me.</p>
+<p>I'd really appreciate any feedback on this.</p>
 
 <ol class="footnotes">
-    <li id="hiring-1">We're hiring for <a href="http://www.meetup.com/jobs">most positions</a>.</li>
-    <li id="output-2">Most of what I do is related to our product's infrastructure&mdash;not interaction, and not engineering new features. My work would be visible if some error leaked to your browser, and that'd probably be bad.</li> 
-    <li id="errors-3">It's fairly difficult to trick the compiler, but in Java, for instance, you can write type-safe code using Generics that it can't prove is safe. If you do that though, you should make use the SuppressWarnings annotation to tell the compiler it's OK.</li>
-    <li id="dominating-4">Actually, I wasn't surprised that Emacs actually had the functionality, just that the name is non-trivial. I gave up looking for it after a couple of minutes and just rolled my own. I'll replace it in a future version, but the existing code works for now.</li>
+    <li id="note-nonblocking">There's also the question of non-blocking vs. blocking, but the first pass will be blocking until there are real numbers to look at.</li>
+    <li id="note-with-in-reader">I'm not sure of the reasoning, but <code class="inline">(with-in-reader s ...)</code> throws an exception saying java.io.PushbackReader cannot be cast to java.io.BufferedReader. This doesn't seem right to me, since it'd work if it were a LineNumberingPushbackReader, but PushbackReader's don't have a <code class="inline">.readLine</code> method, and don't derive from BufferedReader. Nevertheless, I feel as though read-line should know how to handle it, or wrap the PushbackReader in a LineNumberingPushbackReader temporarily, if that's possible.</li>
 </ol>
 
 <h5 class="tag-list">Tagged: 
-  <a href="/tags/emacs.html">emacs</a>
-     , <a href="/tags/ant.html">ant</a>
-     , <a href="/tags/walkthrough.html">walkthrough</a>
+  <a href="/tags/servers.html">servers</a>
+     , <a href="/tags/clojure.html">clojure</a>
      
 </h5>
 </div>
 
 
 <h3 class="other">Other Recent Posts</h3>
+
+   <p>04 Nov 2010&mdash;<a href="/2010/Nov/04/unipoint-minor-mode-for-mathematical-unicode.html">unipoint-mode: A minor-mode for Mathematical Unicode</a></p>
+
+   <p>29 Oct 2010&mdash;<a href="/2010/Oct/29/ant-el-a-code-walkthrough.html">ant.el: A Code Walkthrough</a></p>
 
    <p>24 Oct 2010&mdash;<a href="/2010/Oct/24/clojure-conj-reading-list.html">Clojure Conj Reading List</a></p>
 
@@ -181,10 +176,6 @@
    <p>28 Apr 2010&mdash;<a href="/2010/Apr/28/pattern-matching-with-with.html">Pattern Matching with &#34;With&#34;</a></p>
 
    <p>28 Jan 2010&mdash;<a href="/2010/Jan/28/the-real-disappointment.html">The Real Disappointment</a></p>
-
-   <p>20 Nov 2009&mdash;<a href="/2009/Nov/20/remote-objects.html">Remote Objects</a></p>
-
-   <p>01 Oct 2009&mdash;<a href="/2009/Oct/01/python-worlds.html">Python Worlds</a></p>
    
 
       </div>
@@ -218,6 +209,10 @@
         </ul>
         <h2>Archives</h2>
         <ul>
+        
+        <li><a href="/2011/Jan/" title="January 2011 (1)">January 2011 (1)</a></li>
+        
+        <li><a href="/2010/Nov/" title="November 2010 (1)">November 2010 (1)</a></li>
         
         <li><a href="/2010/Oct/" title="October 2010 (3)">October 2010 (3)</a></li>
         

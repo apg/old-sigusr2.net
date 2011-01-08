@@ -81,7 +81,8 @@ q {
 }
 
 #content a {
- background-color: rgb(200, 255, 102);
+/* background-color: rgb(200, 255, 102);*/
+ background-color: #EEFFD0;
  color: #222222;
 /* border-bottom: 1px dotted #888888; */
  text-decoration: none;
@@ -248,7 +249,8 @@ h2.content-title {
 }
 
 #sidebar a {
- background-color: rgb(200, 255, 102);
+/* background-color: rgb(200, 255, 102); */
+ background-color: #EEFFD0;
  color: #222222;
  text-decoration: none;
 }
