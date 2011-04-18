@@ -168,13 +168,13 @@ None
 <p>This is really simple. We take a list of parser functions and try them one by one, from left to right, until we find one that passes.</p>
 
 <pre><code>&gt;&gt;&gt; iforwhileorfor = alt(matchstr('if'), matchstr('while'), matchstr('for'))
-&gt;&gt;&gt; if_while_for('if')
+&gt;&gt;&gt; iforwhileorfor('if')
 ('if', '')
-&gt;&gt;&gt; if_while_for('while')
+&gt;&gt;&gt; iforwhileorfor('while')
 ('while', '')
-&gt;&gt;&gt; if_while_for('for')
+&gt;&gt;&gt; iforwhileorfor('for')
 ('for', '')
-&gt;&gt;&gt; if_while_for('foof')
+&gt;&gt;&gt; iforwhileorfor('foof')
 None
 </code></pre>
 
