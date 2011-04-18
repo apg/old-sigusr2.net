@@ -80,7 +80,7 @@ $
 
 (defn echo-parser [s]
   (binding [*in* (ds/reader s)]
-    (:data (read-line) :type :echo)))
+    {:data (read-line) :type :echo}))
 
 (defservice echo-server :type echo-parser)
 
@@ -118,7 +118,7 @@ HELLO WORLD
 
 (defn echo-parser [s]
   (binding [*in* (ds/reader s)]
-<span style="color: red;">-    (:data (read-line) :type :echo)))</span>
+<span style="color: red;">-    {:data (read-line) :type :echo}))</span>
 <span style="color: green;">+    (let [l (read-line)]</span>
 <span style="color: green;">+      (assoc {:data l} :type (if (= l "DATE") :date :echo)))))</span>
 
@@ -190,6 +190,8 @@ Wed Jan 05 08:29:38 EST 2011
         </ul>
         <h2>Archives</h2>
         <ul>
+        
+        <li><a href="/2011/Apr/" title="April 2011 (1)">April 2011 (1)</a></li>
         
         <li><a href="/2011/Jan/" title="January 2011 (1)">January 2011 (1)</a></li>
         

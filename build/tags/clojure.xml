@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged clojure</title><link href="http://sigusr2.net/tags/clojure.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-01-07T19:41:53Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Softserv Serves Requests</title><link href="/2011/Jan/07/softserve-serves-requests.html"/><id>md5:093bb5e2a8d89cf283efb8984e24d0ab</id><updated>2011-01-07T00:00:00Z</updated><content type="html"><![CDATA[<p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged clojure</title><link href="http://sigusr2.net/tags/clojure.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-04-18T07:15:17Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Softserv Serves Requests</title><link href="http://sigusr2.net/2011/Jan/07/softserve-serves-requests.html"/><id>md5:093bb5e2a8d89cf283efb8984e24d0ab</id><updated>2011-01-07T00:00:00Z</updated><content type="html"><![CDATA[<p>
    <span class="preamble">Anyone that knows me knows that I have a lot of projects, most of which are in some sort of unfinished but partially functional state. Then there are others that have a solid 0.1 release, maybe lacking documentation, but usable. There are yet others that never make it to 0.1, and despite my happy thoughts about how this piece of code will change the world, or be the future, it's as good as deadpooled.</span>
 </p>
 
@@ -48,7 +48,7 @@ $
 
 (defn echo-parser [s]
   (binding [*in* (ds/reader s)]
-    (:data (read-line) :type :echo)))
+    {:data (read-line) :type :echo}))
 
 (defservice echo-server :type echo-parser)
 
@@ -86,7 +86,7 @@ HELLO WORLD
 
 (defn echo-parser [s]
   (binding [*in* (ds/reader s)]
-<span style="color: red;">-    (:data (read-line) :type :echo)))</span>
+<span style="color: red;">-    {:data (read-line) :type :echo}))</span>
 <span style="color: green;">+    (let [l (read-line)]</span>
 <span style="color: green;">+      (assoc {:data l} :type (if (= l "DATE") :date :echo)))))</span>
 
@@ -117,7 +117,7 @@ Wed Jan 05 08:29:38 EST 2011
     <li id="note-with-in-reader">I'm not sure of the reasoning, but <code class="inline">(with-in-reader s ...)</code> throws an exception saying java.io.PushbackReader cannot be cast to java.io.BufferedReader. This doesn't seem right to me, since it'd work if it were a LineNumberingPushbackReader, but PushbackReader's don't have a <code class="inline">.readLine</code> method, and don't derive from BufferedReader. Nevertheless, I feel as though read-line should know how to handle it, or wrap the PushbackReader in a LineNumberingPushbackReader temporarily, if that's possible.</li>
 </ol>
 ]]></content></entry>
-<entry><title>Clojure Conj Reading List</title><link href="/2010/Oct/24/clojure-conj-reading-list.html"/><id>md5:bf830f7059334bc6e2722078fa36fb07</id><updated>2010-10-24T00:00:00Z</updated><content type="html"><![CDATA[<p>
+<entry><title>Clojure Conj Reading List</title><link href="http://sigusr2.net/2010/Oct/24/clojure-conj-reading-list.html"/><id>md5:bf830f7059334bc6e2722078fa36fb07</id><updated>2010-10-24T00:00:00Z</updated><content type="html"><![CDATA[<p>
    <span class="preamble">This past weekend, the first (hopefully annual) <a href="http://first.clojure-conj.org">Clojure Conj</a> took place in Durham, NC.</span></p>
 <p>In my opinion, the conference was a great success, and was greatly inspirational, as well as enjoyable in many regards. I left the conference recharged with energy to better learn about and help improve the Clojure ecosystem, and just get more involved. But, that's not all I left with of course. I left with great information and even more pointers to new thoughts, opinions and ideas.</p>
 

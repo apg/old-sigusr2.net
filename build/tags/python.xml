@@ -1,4 +1,352 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged python</title><link href="http://sigusr2.net/tags/python.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-01-07T19:41:53Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Code Blogging: ARGF in Python</title><link href="/2010/Jun/23/argf.html"/><id>md5:9d5ba6e7df3fe6f44b607a6a0be06952</id><updated>2010-06-23T00:00:00Z</updated><content type="html"><![CDATA[<pre><code class="python">"""ARGF from Ruby in Python.
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged python</title><link href="http://sigusr2.net/tags/python.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-04-18T07:15:17Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Parser Combinators Made Simple</title><link href="http://sigusr2.net/2011/Apr/18/parser-combinators-made-simple.html"/><id>md5:2d4da36bd3daa6959e8b4f79b8094fc4</id><updated>2011-04-18T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Parsing theory has been around for quite a long time, but it is often thought of as magic by the swarms of people who haven't bothered to read about it, and see how plain and dry it actually is. Algorithms for parsing <a href="http://en.wikipedia.org/wiki/LR_parser">LR(k)</a> grammars (meaning Left-to-right, Right-most derivation, k tokens lookahead) for instance, normally just traverse a state machine that was computed before hand (either by hand, or by using a parser generator such as <a href="http://www.gnu.org/software/bison/">bison</a> or <a href="http://en.wikipedia.org/wiki/Yacc">yacc</a>). Sure, there are many things to trip on, tedious to track down ambiguities, and other issues, but the general theory of parsing has remained unchanged for years&mdash;one might say, it is a solved problem.<sup><a id="return-solvedproblem" href="#note-solvedproblem">[1]</a></span></p>
+
+<p>When learning about parsing for the first time though, the idea of a <a href="http://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parser</a> is often taught first. Recursive descent parsers, are relatively simple to reason about, to write and to shoot yourself in the foot with. A simple <a href="http://en.wikipedia.org/wiki/LL_parser">LL(1)</a> parser (meaning Left-to-right, Left-most derivation, 1 token lookahead), for instance, can't parse <a href="http://en.wikipedia.org/wiki/Left_recursion">left-recursive grammars</a>, which is the most natural way to write certain types of grammars<sup><a id="return-leftrecursion" href="#note-leftrecursion">[2]</a></sup>. Typically, when writing a recursive descent parser, the author takes the grammar and produces a function for each production (non-terminal). Each function then reads a token and recurses to the other non-terminals in the grammar reachable from the current production. And, eventually, at the end of the function the sub parts will be combined in such a way that a <a href="http://en.wikipedia.org/wiki/Parse_tree">parse tree</a> will be created.</p>
+
+<p>This sounds boring and tedious, and in fact is. However, there is a useful technique for creating these types of parsers that was developed some time ago<sup><a id="return-hutton1989" href="#note-hutton1989">[3]</a></sup>, which involves composing a small set of functions into more meaningful, more advanced parsers. They still suffer from the same problems as your typical recursive descent parser (as presented), but with some other trickery can be made to overcome those deficiencies (we won't discuss that in this article).</p>
+
+<p>In order to build a parser from the ground up, we need to think about what a parser actually is. In some sense, it is really just a function that takes an input string and produces some result. That result, in order to make any progress should contain the leftover string after consuming some part of it, or in the case of error (i.e. incorrect input), return some value indicating failure. In Python, a natural way to encode both results would be to use <code class="inline">(<em>"matched string"</em>, <em>"leftover string"</em>)</code> or <code class="inline">None</code>. For sanity's sake, let us refer to functions which match this criteria as <em>parser functions</em>.</p>
+
+<p>To start off, we'll write a useful parser function, which at first glance seems pointless, <code class="inline">anychar</code>. <code class="inline">anychar</code> matches <em>any</em> (no trickery here!) character so long as there is at least one character left in the input string. (<strong>Note:</strong> we'll use the variable <code class="inline">strn</code> to always refer to the input string, which represents the <em>string left to parse</em>.)</p>
+
+<pre><code>def anychar(strn):
+    if strn == "":
+        return None
+    return (strn[0], strn[1:])
+</code></pre>
+
+<p>It is easy to see that the result of this parser function matches our encoding. If there are no characters left in <code class="inline">strn</code>, then we return the failure condition, <code class="inline">None</code>, otherwise we return a tuple of what we parsed, and the rest of the string which we didn't parse.</p>
+
+<p>It becomes more useful when we pair <code class="inline">anychar</code> with a test against the character it consumes. Enter <code class="inline">chartest</code>, which is a function that creates another parser function, given a predicate (i.e. a function which returns <code class="inline">True</code> or <code class="inline">False</code>).</p>
+
+<pre><code>def chartest(pred):
+    def _(strn):
+        c = anychar(strn)
+        if c and pred(c[0]):
+            return (c[0], c[1])
+        return None
+    return _
+</code></pre>
+
+<p>In order to use <code class="inline">chartest</code>, we pass it a predicate, like so:</p>
+
+<pre><code>&gt;&gt;&gt; chartest(lambda x: x == 'a')('abc')
+('a', 'bc')
+</code></pre>
+
+<p>To see what happened, remember that <code class="inline">chartest</code> <em>creates</em> a new parser function. With that, we just call the new parser function with the rest of the input string <code class="inline">'abc'</code>. The result indicates success, because an <code class="inline">'a'</code> was discovered as the first character. If we were unsuccessful, just like in <code class="inline">anychar</code>, instead of <code class="inline">('a', 'bc')</code>, we'd have seen <code class="inline">None</code> returned.</p>
+
+<p>It is a bit verbose to always create a <code class="inline">lambda</code> to match a single character, so <code class="inline">matchchr</code> gets a target character and calls <code class="inline">chartest</code> for us. (Remember, calling <code class="inline">chartest</code> creates a <em>new</em> parser function, this is an important thing to note.)</p>
+
+<pre><code>def matchchr(targetchr):
+    return chartest(lambda x: x == targetchr)
+</code></pre>
+
+<p>Now we can match single characters against our input stream, which is a great starting point, but hardly makes for an easy to use library. One limitation is that there is no way to specify more than one character as a possible match, such as "all alpha numeric"&mdash;for that, we use <code class="inline">oneof</code>.</p>
+
+<pre><code>def oneof(target):
+    chars = set([x for x in target])
+    return chartest(lambda x: x in chars)
+</code></pre>
+
+<p><code class="inline">oneof</code> creates a new test function to pass to chartest, which instead of testing if a character is equal to a single target character, checks to see if the character is in the set of characters we're looking for. Some useful definitions follow, which make parser functions using <code class="inline">oneof</code>, and a set of characters.</p>
+
+<pre><code>alpha = oneof('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+loweralpha = oneof('abcdefghijklmnopqrstuvwxyz')
+upperalpha = oneof('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+digit = oneof('0123456789')
+hexdigit = oneof('0123456789abcdefABCDEF')
+whitespace = oneof(' \t\n\r')
+</code></pre>
+
+<p>While matching a single character is useful, it would be much more useful if we could match a <em>token</em>, like "<code class="inline">while</code>," or "Content-Type." Not to worry, <code class="inline">matchstr</code> produces a parser function that will combine the previously created <code class="inline">matchchr</code> for each character in the target string. It looks a bit complicated, so we'll go through it step by step.</p>
+
+<pre><code>def matchstr(target):
+    if not target:
+        return lambda strn: ("", strn)
+
+    def _(strn):
+        c = matchchr(target[0])(strn)
+        if c:
+            cs = matchstr(target[1:])(c[1])
+            if cs:
+                return (c[0] + cs[0], cs[1])
+        return None
+    return _
+</code></pre>
+
+<p><code class="inline">target</code>, just like <code class="inline">targetchr</code> in <code class="inline">matchchr</code> is the string we're eventually trying to match in full. If <code class="inline">target</code> is empty, then our parser function is simple&mdash;it doesn't advance the input string, and doesn't consume anything.</p>
+
+<p>Why don't we return <code class="inline">None</code> here? Well, if our target is empty, we're not asking <code class="inline">matchstr</code> to do any work at all, so there isn't a failure (indicated by <code class="inline">None</code>). It, however, also makes for a great base case to the recursion that follows.</p>
+
+<p>If there <em>is</em> a target string to match against, we attempt to match the first character within it. If that succeeds, we shorten the target string and recurse. We eventually return a combination of the result of <code class="inline">matchchr</code> and the result of the recursive call to <code class="inline">matchstr</code>. Take a minute to look over this and ensure you understand it&mdash;it's actually pretty straightforward assuming understanding of the previous functions.</p>
+
+<p>Let's take a look at how we use it:</p>
+
+<pre><code>&gt;&gt;&gt; matchwhile = matchstr('while')
+&gt;&gt;&gt; matchwhile('while True:')
+('while', ' True:')
+</code></pre>
+
+<p>As you can see, we used <code class="inline">matchstr</code> to <em>build</em> a parser function which matches the string "<code class="inline">while</code>"&mdash;simple enough.</p>
+
+<p>Ok, so what if we want to parse more complicated things, like say, the rest of the input string from the "while True:" example? We need some ways to combine these parser functions to make them more useful, otherwise, all we did was create the equivalent of:</p>
+
+<pre><code>if strn.startswith("while"):
+    return (strn[0:5], strn[5:])
+</code></pre>
+
+<p>Which, in Python, would be much more efficient!<sup><a id="return-efficiency" href="#note-efficiency">[4]</a></sup>
+
+<p>Another parser function that we need to make this whole thing useful is <code class="inline">optional</code>. <code class="inline">optional</code> takes as an argument a parser function, and returns a new parser function that succeeds even if the original parser function does not. Essentially, if there is a failure, it returns the original input string.</p>
+
+<pre><code>def optional(parserfn):
+    def _(strn):
+        c = parserfn(strn)
+        if c:
+            return c
+        return ('', strn)
+    return _
+</code></pre>
+
+<p>If we make <code class="inline">matchwhile</code>, from above, optional we get this:</p>
+
+<pre><code>&gt;&gt;&gt; optional_matchwhile = optional(matchwhile)
+&gt;&gt;&gt; optional_matchwhile('foo')
+('', 'foo')
+</code></pre>
+
+<p>Without <code class="inline">optional</code>, attempting to call <code class="inline">matchwhile</code> on the input string <code class="inline">'foo'</code> would have resulted in <code class="inline">None</code>, the failure condition.</p>
+
+<p>The presence of <code class="inline">optional</code> also leads us to <code class="inline">repeat</code> and <code class="inline">repeat0</code> which are mutually exclusive. <code class="inline">repeat</code> will attempt to match the parser function at least once, with no boundary. <code class="inline">repeat0</code> will match the parser function zero or more times:</p>
+
+<pre><code>def repeat(parser):
+    def _(strn):
+        c = parser(strn)
+        if c:
+            cs = repeat0(parser)(c[1])
+            return (c[0] + cs[0], cs[1])
+        return None
+    return _
+
+def repeat0(parser):
+    return optional(repeat(parser))
+</pre></code>
+
+<p>Again, like <code class="inline">optional</code>, <code class="inline">repeat</code> and <code class="inline">repeat0</code> build parser functions from existing ones. This is very much a common pattern when building parsers of this type.</p>
+
+<p>The implementation of <code class="inline">repeat0</code> and <code class="inline">repeat</code> is quite clever. Note that zero or more is the same as <em>optionally</em> one or more. The implementation of both follows from that realization. <code class="inline">repeat</code> first attempts to call the passed in parser function. If it succeeds it calls <code class="inline">repeat0</code> on the rest of the input string after calling <code class="inline">parser</code> the first time. If <code class="inline">repeat0</code> succeeds, which it always will given <code class="inline">optional</code>, we combine the results and return.
+
+<pre><code>&gt;&gt;&gt; optrepeat_while = repeat0(matchwhile)
+&gt;&gt;&gt; optrepeat_while('whilewhilewhile')
+('whilewhilewhile', '')
+&gt;&gt;&gt; optrepeat_while('foo')
+('', 'foo')
+&gt;&gt;&gt; repeat_while = repeat(matchwhile)
+&gt;&gt;&gt; repeat_while('foo')
+None
+&gt;&gt;&gt; repeat_while('while foo')
+('while', ' foo')
+</code></pre>
+
+<p>We still need the ability to do alternation, like "while" <em>or</em> "if." For that we introduce <code class="inline">alt</code>.</p>
+
+<pre><code>def alt(*parsers):
+   def _(strn):
+       for p in parsers:
+           result = p(strn)
+           if result:
+               return result
+   return _
+</code></pre>
+
+<p>This is really simple. We take a list of parser functions and try them one by one, from left to right, until we find one that passes.</p>
+
+<pre><code>&gt;&gt;&gt; iforwhileorfor = alt(matchstr('if'), matchstr('while'), matchstr('for'))
+&gt;&gt;&gt; if_while_for('if')
+('if', '')
+&gt;&gt;&gt; if_while_for('while')
+('while', '')
+&gt;&gt;&gt; if_while_for('for')
+('for', '')
+&gt;&gt;&gt; if_while_for('foof')
+None
+</code></pre>
+
+<p>Alternation is important, but it is maybe even <em>more</em> important to ensure that many parser functions pass in order, a sequence of parser functions if you will. It is this operator that allows us to do something like <code class="inline">whilestmt = sequence(whileToken, conditional, colonToken, codeBlock)</code>.</p>
+
+<pre><code>def sequence(*parsers):
+    def _(strn):
+        parsed = ''
+        rest = strn
+        for p in parsers:
+            result = p(rest)
+            if result:
+                rest = result[1]
+                parsed += result[0]
+            else:
+                return None
+        return (parsed, rest)
+    return _
+</code></pre>
+
+<p>Assuming simplified definitions of the supporting rules, our <code class="inline">whileStmt</code> example looks something like this:</p>
+
+<pre><code>&gt;&gt;&gt; whileToken = matchstr("while")
+&gt;&gt;&gt; conditional = oneof("&gt;&lt;=")
+&gt;&gt;&gt; colonToken = matchchr(":")
+&gt;&gt;&gt; codeBlock = alt(matchstr("if"), matchstr("for"))
+&gt;&gt;&gt; whileStmt = all(whileToken, conditional, colonToken, codeBlock)
+&gt;&gt;&gt; whileStmt('while&lt;:if')
+('while&lt;:if', '')
+&gt;&gt;&gt; whileStmt('while&gt;:if')
+('while&gt;:if', '')
+&gt;&gt;&gt; whileStmt('while>:for')
+('while&gt;:for', '')
+&gt;&gt;&gt; whileStmt('while:for')
+None
+</code></pre>
+
+<p><code class="inline">sequence</code> looks complicated, but is rather simple. It is basically <code class="inline">reduce</code>, combining the results of each parser into the results of all of the parser function outputs together.</p>
+
+<p>That's all we really need to construct more interesting parsers, so we'll now construct a simplified parser for JSON.<sup><a id="return-json" href="#note-json">[5]</a></sup></p>
+
+<p>We'll start with some utility functions:</p>
+
+<pre><code>def betweenchrs(parser, left="(", right=")"):
+    def _(strn):
+        lres = matchchr(left)(strn)
+        if lres:
+            pres = parser(lres[1])
+            if pres:
+                rres = matchchr(right)(pres[1])
+                if rres:
+                    return (left + pres[0] + right, rres[1])
+        return None
+    return _
+
+betweenparens = lambda p: betweenchrs(p, left="(", right=")")
+betweenbrackets = lambda p: betweenchrs(p, left="[", right="]")
+betweencurlies = lambda p: betweenchrs(p, left="{", right="}")
+</code></pre>
+
+<p><code class="inline">betweenchrs</code> lets us easily create a parser function which attempts to parse, using <code class="inline">parser</code>, only if it is between <code class="inline">left</code> and <code class="inline">right</code>. This is useful in JSON, because of its list and dictionary data types, which are delimited by <code class="inline">[]</code> and <code class="inline">{}</code> respectively.</p>
+
+<p>Strings in JSON are composed of a series of characters between <code class="inline">"</code>'s. But, if you want to actually use a <code class="inline">"</code> within the string, you can do that by preceding it with a <code class="inline">\</code>. We can make a parser function that satisfies these rules rather easily, making use of <code class="inline">anychar</code>.</p>
+
+<pre><code>def charorquoted(strn):
+    c = anychar(strn)
+    if c[0] == '"':
+        return None
+    elif c[0] == '\\':
+        c2 = chartest(lambda x: x in ('\\', '"'))(c[1])
+        if c2:
+            return (c[0] + c2[0], c2[1])
+    else:
+        return c
+</code></pre>
+
+<p>In the case that we find a '"' character without a '\' character preceding it, it is a failure.</p>
+
+<p>Whitespace doesn't much matter between tokens in JSON, so let us define something that ultimately ignores it. <code class="inline">ignorews</code> uses <code class="inline">repeat0</code> to strip the preceding whitespace, calls the parser function given using the left over input string. If the parser function passes, it calls <code class="inline">repeat0</code> again against whitespace and ultimately returns the passed in parser function's parsed result and the ignored whitespace's left over input string. That's a mouthful, but it's fairly easy to understand:</p>
+
+<pre><code>def ignorews(p):
+    def _(strn):
+        w = repeat0(whitespace)(strn)
+        if w:
+            pres = p(w[1])
+            if pres:
+                w2 = repeat0(whitespace)(pres[1])
+                if w2:
+                    return (pres[0], w2[1])
+        return None
+    return _
+</code></pre>
+
+<p><code class="inline">anint</code>, <code class="inline">astring</code>, <code class="inline">acolon</code> and <code class="inline">acomma</code> are just helper functions which do exactly what they describe. We're simplifying this implementation, as it is for demonstration purposes, so we're not taking into consideration floating point numbers, or integers specified using hexidecimal and other formulations of numbers.</p>
+
+<pre><code>anint = sequence(optional(matchchr("-")), repeat(digit))
+astring = betweenchrs(repeat0(charorquoted), left='"', right='"')
+acolon = matchchr(':')
+acomma = matchchr(',')
+</code></pre>
+
+<p>When we define dictionaries and lists, we run into a problem. Both lists and dictionaries can contain lists and dictionaries (as well as numbers and strings of course), which represents a problem for when we define these functions (we can't recursively define something that doesn't already exist!). One solution to this problem is to use a mutable object which acts as a "forward reference." When we finish defining the pieces we need, we update the forward reference, and then all is well.</p>
+
+<p>For both aesthetic, and practical reasons, we'll use a class instance which overrides <code class="inline">__call__</code>, and  <code class="inline">__ilshift__</code>, which will allow us to use an instance of <code class="inline">Forward</code> as a parser function, and <code class="inline">&lt;&lt;=</code> (from __ilshift__) as a way to update the parser function that's contained within the reference.</p>
+
+<pre><code>class Forward(object):
+    def __init__(self):
+        self.p = None
+
+    def __call__(self, *args, **kwargs):
+        return self.p(*args, **kwargs)
+
+    def __ilshift__(self, p):
+        self.p = p
+        return self
+</code></pre>
+
+<p>To use a <code class="inline">Forward</code>, we simply create an instance of <code class="inline">Forward</code> and assign it to a variable, just as if we were creating a parser function. <code class="inline">Forward</code> is like a promise. "If you act like a parser function for me for a little bit, I promise I'll actually turn you into one later." If the promise is kept, and the <code class="inline">Forward</code> is updated, parsing will proceed as if nothing was ever not specified to begin with.</p>
+
+<pre><code>avalue = Forward()
+akey = ignorews(alt(anint, astring))
+akeyvaluepair = sequence(akey, acolon, avalue)
+</code></pre>
+
+<p>Both lists and dictionaries have items that are separated by comma. <code class="inline">commaseparated</code> is essentially <code class="inline">repeat0</code> except that it ensures a comma appears after each item, except in the last item.
+
+<pre><code>def commaseparated(parser):
+    def _(strn):
+        r = repeat0(sequence(parser, acomma))(strn)
+        if r:
+            r2 = parser(r[1])
+            if r2:
+                return (r[0] + r2[0], r2[1])
+        elif r:
+            return r
+        return None
+    return _
+</code></pre>
+
+<p>Now that we have all the pieces specified, we put a <code class="inline">commaseparated</code> key value pair between curly braces to parse a dictionary, and a <code class="inline">commaseparated</code> value parser function between square brackets to parse a list.</p>
+
+<pre><code>adict = betweencurlies(commaseparated(akeyvaluepair))
+alist = betweenbrackets(commaseparated(avalue))
+</code></pre>
+
+<p>We still have our promise to keep for <code class="inline">avalue</code>, and with the definitions of <code class="inline">alist</code> and <code class="inline">adict</code>, we now can. <code class="inline">avalue</code>, as in JSON, should either be a number, a string, a list or a dictionary, and whitespace is ignored.</p>
+
+<pre><code>avalue <<= alt(*map(ignorews, [adict, alist, anint, astring]))
+</code></pre>
+
+<p>To achieve alternation, we make use of <code class="inline">alt</code>, but before we do that, we wrap each parser function contained in <code class="inline">avalue</code> in an <code class="inline">ignorews</code> parser function builder to satisify that requirement. Finally, we shift the newly created parser function into the forward reference for <code class="inline">avalue</code>.</p>
+
+<p>To parse a top level JSON document, we look for either a list, or a dictionary. The parser function to do that is quite easy to specify.</p>
+
+<pre><code>json = alt(adict, alist)
+</code></pre>
+
+<p>Last, but certainly not least, let's actually use what we've constructed:</p>
+
+<pre><code>&gt;&gt;&gt; json('''{"hello": {1: "how are you?"}, "i is": "fine", "how": "are you?", 1: ["these", "values", "work", 2]}''')
+('{"hello":{1:"how are you?"},"i is":"fine","how":"are you?",1:["these","values","work",2]}', '')
+</code></pre>
+
+<p>Success!</p>
+
+<p>While we haven't shown how to formulate an LL(k) grammar, or even talked about what that actually is formally, we have shown that with a few simple functions that build parser functions, we can build, quite easily, parsing functions which parse complicated things. However, we've only shown that the input is valid, actually constructing a parse tree, or acting upon it, is left as an exercise to the reader.</p>
+
+<p>Source code for all this is <a href="http://files.sigusr2.net/parser_functions.py">here</a>
+
+<ol class="footnotes">
+   <li id="note-solvedproblem">I'm not sure if parsing is really "solved," but the algorithms we have work well enough in practice that there isn't a ton of interesting new research going on around it. <a href="http://arxiv.org/abs/1010.5023">Yacc is Dead</a>, for instance used the results of <a href="http://portal.acm.org/citation.cfm?id=321249">a paper</a> from 1964, but came <a href="http://research.swtch.com/2010/12/yacc-is-not-dead.html">under fire</a>. Can parsing be made trivially easy? Maybe, but it's likely that ambiguity will be somewhere&mdash;which would be the unsolved in parsing.<a href="#return-solvedproblem">&crarr;</a></li>
+   <li id="note-leftrecursion">See <a href="#note-leftrecursion">left</a> <a href="http://en.wikipedia.org/wiki/Left_recursion">recursion</a>. All joking aside, left recursion occurs in a grammar when a non-terminal rule is used recursively and appears on the left. For example: <code class="inline">expr = expr + tail</code>. <a href="#return-leftrecursion">&crarr;</a></li>
+   <li id="note-hutton1989">Graham Hutton. Proceedings of the 1989 Glasgow Workshop on Functional Programming (Fraserburgh, Scotland), Springer-Verlag Series of Workshops in Computing, Springer-Verlag, Berlin, 1990.<a href="#return-hutton1989">&crarr;</a></li>
+   <li id="note-efficiency">The purpose of this article isn't to describe an efficient parsing technique for Python, but to rather demonstrate a useful technique that could be adapted and built upon, to build an efficient parsing framework for <em>any</em> language that supports first class functions. There's a follow up article to this which shows just how much of this can actually be abstracted out in order to make it even more simple.<a href="#return-efficiency">&crarr;</a></li>
+   <li id="note-json">We limit our parser to strings, integers, dictionary and lists. The complete specification appears at <a href="http://json.org">http://json.org</a><a href="#return-json">&crarr;</a></li>
+</ol>
+]]></content></entry>
+<entry><title>Code Blogging: ARGF in Python</title><link href="http://sigusr2.net/2010/Jun/23/argf.html"/><id>md5:9d5ba6e7df3fe6f44b607a6a0be06952</id><updated>2010-06-23T00:00:00Z</updated><content type="html"><![CDATA[<pre><code class="python">"""ARGF from Ruby in Python.
 Released into the public domain by Andrew Gwozdziewycz, 2010
 """
 
@@ -32,7 +380,7 @@ ARGF = _ARGF()
 
 <p><strong>Update:</strong> It was pointed out that I didn't handle <code class="inline">lineno</code> correctly; I fixed it.</p>
 ]]></content></entry>
-<entry><title>Maps are Broken, for Some Definition of Broken</title><link href="/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html"/><id>md5:ee8c78a17c21d8d986ea5f7e3bc78811</id><updated>2010-06-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
+<entry><title>Maps are Broken, for Some Definition of Broken</title><link href="http://sigusr2.net/2010/Jun/22/maps-are-broken-for-some-definition-of-broken.html"/><id>md5:ee8c78a17c21d8d986ea5f7e3bc78811</id><updated>2010-06-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Map datatypes are extremely useful for a variety of tasks in programming. But, they are often painful to use; take for example the following task.</span></p>
 
 <p>In Java, I have a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/HashMap.html">HashMap</a> and I wish to get a random key. Well, <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/AbstractMap.html">AbstractMap</a> doesn't define a way to get a random key, but it does provide a way to get a <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/util/Set.html">Set</a> of keys. Does Set have a way to get a random element? No, but you can create an Array from a Set with the <code class="inline">toArray()</code> method on Set.</p>
 
@@ -120,7 +468,7 @@ KeyError: 2
 }
 </code></pre>
 ]]></content></entry>
-<entry><title>Pattern Matching with "With"</title><link href="/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
+<entry><title>Pattern Matching with "With"</title><link href="http://sigusr2.net/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
 <span class="preamble">When I originally thought about adding pattern matching to Python, in the <a href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html">OCaml sense</a>, I ended up using a decorator that more or less registed a bunch of callbacks with a dispatch table based on the types of it's arguments.</span>
 </p>
 
@@ -219,7 +567,7 @@ with match('x y _', [1, 2, 3]) as (x, y):
 
 <p>Back then, I concluded with <q>This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</q> Today, I'll conclude the same way.</p>
 ]]></content></entry>
-<entry><title>Remote Objects</title><link href="/2009/Nov/20/remote-objects.html"/><id>md5:c613f9f24fe2f9428acc9780d5c39573</id><updated>2009-11-20T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
+<entry><title>Remote Objects</title><link href="http://sigusr2.net/2009/Nov/20/remote-objects.html"/><id>md5:c613f9f24fe2f9428acc9780d5c39573</id><updated>2009-11-20T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Back in May, I was tasked with migrating a few years worth of <a href="http://roundup.sourceforge.net/">Roundup</a> data to <a href="http://www.activecollab.com/">activeCollab</a>&mdash;a more featured project management and collaboration tool.</span></p>
 
 <p>The move was justified, as Roundup no longer matched the way our organization wished to conduct business. It was a good move, but as with any migration there are bound to be some hiccups along the way.</p>
 
@@ -241,7 +589,7 @@ with match('x y _', [1, 2, 3]) as (x, y):
 
 <p>Needless to say, I abandoned my implementation of this idea and will adopt Remote Objects in the future. Have a look. Hopefully it is useful in your toolbox too.</p>
 ]]></content></entry>
-<entry><title>Python Worlds</title><link href="/2009/Oct/01/python-worlds.html"/><id>md5:8ec25d2f452904fcb32829303656bf92</id><updated>2009-10-01T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
+<entry><title>Python Worlds</title><link href="http://sigusr2.net/2009/Oct/01/python-worlds.html"/><id>md5:8ec25d2f452904fcb32829303656bf92</id><updated>2009-10-01T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last year, I was introduced to a paper via <a href="http://lambda-the-ultimate.org/node/3040">Lambda the Ultimate</a> about <q>worlds,</q> a language construct which allows one to control the scope of side effects while programming.</span></p>
 
 <p>Worlds allow you to capture the current scope of a program in a first-class way. All updates to the current state (i.e. local variables, global variables) happen in a non-commiting way. In other words, you can back out of any changes at any time.</p>
 
@@ -323,7 +671,7 @@ app.run()
     <li id="f3">The Worlds prototype was written in <a href="http://tinlizzie.org/ometa/">OMeta</a>, which is a solution to the "unbendable" languages problem. Note: I didn't attempt to write worlds in PyMeta, but, it may be possible to do.</li>
 </ol>
 ]]></content></entry>
-<entry><title>Bitten... Really Hard</title><link href="/2009/Sep/09/bitten-really-hard.html"/><id>md5:56c6a1146108e40e674d0df15cd6c5b2</id><updated>2009-09-09T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last Friday I was bitten really hard by something I would not have, in my wildest dreams think would bite me, Python's <a href="http://docs.python.org/library/urllib2.html"><code class="inline">urllib2</a></code>.</span></p>
+<entry><title>Bitten... Really Hard</title><link href="http://sigusr2.net/2009/Sep/09/bitten-really-hard.html"/><id>md5:56c6a1146108e40e674d0df15cd6c5b2</id><updated>2009-09-09T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Last Friday I was bitten really hard by something I would not have, in my wildest dreams think would bite me, Python's <a href="http://docs.python.org/library/urllib2.html"><code class="inline">urllib2</a></code>.</span></p>
 
 <p>It is the ever so common case that you always hear, <q>It works fine here, it must be your fault.</q> And, boy did I come up with some interesting theories as to why it was not the fault of my code.</p>
 
@@ -366,7 +714,7 @@ connection = urllib2.urlopen(req)
 
 <p>This whole experience will make me think twice before laying the blame anywhere until I have uncovered the real truth, something I think all programmers should learn to do, if they don't know already.</p>
 ]]></content></entry>
-<entry><title>The Case of the Unusable Reusable</title><link href="/2009/Jul/22/case-of-the-unusable-reusable.html"/><id>md5:1790e770e90b7ed37ba8eeeda62034a7</id><updated>2009-07-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">The <a href="http://www.djangoproject.com/">Django</a> web framework has a huge following that releases lots of simple reusable apps that can be plugged into your website. However, sometimes they are too simple, and not "plugin-able" quite enough.</span></p>
+<entry><title>The Case of the Unusable Reusable</title><link href="http://sigusr2.net/2009/Jul/22/case-of-the-unusable-reusable.html"/><id>md5:1790e770e90b7ed37ba8eeeda62034a7</id><updated>2009-07-22T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">The <a href="http://www.djangoproject.com/">Django</a> web framework has a huge following that releases lots of simple reusable apps that can be plugged into your website. However, sometimes they are too simple, and not "plugin-able" quite enough.</span></p>
 
 <p>Take for instance <a href="http://code.google.com/p/django-favorites/" title="django-favorites on Google Code">django-favorites</a>. By itself it's a great package that does exactly what you want&mdash;it allows a user to mark things as being a favorite. Notice that I said "things." "Things" here means any model, because it uses the <a href="http://docs.djangoproject.com/en/dev/ref/contrib/contenttypes/#id1" title="Generic Relations">generic relationships</a> framework that Django provides.</p>
 
@@ -452,7 +800,7 @@ only_favorite_songs = Song.objects.with_favorite_for(user, all=False)
 <p>I put my django-favorites on <a href="http://github.com/apgwoz/django-favorites/">github</a>. Feel free to flame me for going against what this post stands for and creating yet another "favorites" reusable app, without submitting a patch to the original, I wanted some practice in Django development.
 </p>
 ]]></content></entry>
-<entry><title>Dispatching With "with"</title><link href="/2009/Mar/04/dispatching-with-with.html"/><id>md5:c47b741e6d7072c9b14a6d5f74c671f1</id><updated>2009-03-04T08:15:00Z</updated><content type="html"><![CDATA[<p>
+<entry><title>Dispatching With "with"</title><link href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html"/><id>md5:c47b741e6d7072c9b14a6d5f74c671f1</id><updated>2009-03-04T08:15:00Z</updated><content type="html"><![CDATA[<p>
 <span class="preamble">Since <a href="http://www.python.org">Python</a> 2.5, we've had access to a new contstruct called the <a href="http://www.python.org/dev/peps/pep-0343/"><code class="inline">with</code></a>-statement. Using them is as simple as implementing the <a href="http://www.python.org/doc/2.5.2/lib/typecontextmanager.html">context manager protocol</a> for classes.
 </span>
 </p>
@@ -571,7 +919,7 @@ if __name__ == '__main__':
 
 <p>It's declarative, simple, and eliminates a lot of noise, but we no longer get the packaging, or the ability to easily seperate our resources into multiple files. But, for one file web apps, maybe it's useful.</p>
 ]]></content></entry>
-<entry><title>Anagrams Predicate</title><link href="/2009/Jan/08/anagrams-predicate.html"/><id>md5:c7c123380fbc5a9934d6d485b0a050aa</id><updated>2009-01-08T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Recently, I spent some time thinking about a simple problem. How do you test if two strings are <a href="http://en.wikipedia.org/wiki/Anagram">anagrams</a> of each other?</span></p>
+<entry><title>Anagrams Predicate</title><link href="http://sigusr2.net/2009/Jan/08/anagrams-predicate.html"/><id>md5:c7c123380fbc5a9934d6d485b0a050aa</id><updated>2009-01-08T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Recently, I spent some time thinking about a simple problem. How do you test if two strings are <a href="http://en.wikipedia.org/wiki/Anagram">anagrams</a> of each other?</span></p>
 
 <p>There are many ways, but the naive solution is to simply sort both strings, character-wise, and then compare the results. In <a href="http://www.python.org">Python</a>, you might do that like so (We'll leave out the fact that anagrams are actually real words and phrases. We also work in a case-sensitive manor [e.g. "JimMorrison" and "MrMojoRisin" isn't truthy, though a simple <code class="inline">s.lower()</code> goes a long way.]):</p>
 
@@ -662,111 +1010,6 @@ td.first { background: #dddddd; font-weight: bold; color: #222222; }
 <p>
   Download the code: <a href="http://files.sigusr2.net/anagram.py">anagram.py</a>
 </p>
-]]></content></entry>
-<entry><title>Python Type Constructors a la OCaml</title><link href="/2008/Sep/30/python-type-constructors-like-ocaml.html"/><id>md5:5c9d3c4e3c5a50bf32b5481935fde949</id><updated>2008-09-30T07:00:00Z</updated><content type="html"><![CDATA[<p>
-<span class="preamble">Earlier this summer, I started taking a look at the <a href="http://caml.inria.fr/" title="Objective-Caml">OCaml</a> programming language in anticipation of the compilers class I'm taking this fall.</span>
-</p>
-
-<p>OCaml is a strongly, <a href="http://en.wikipedia.org/wiki/Type_system#Static_typing">statically typed</a>, functional language with <a href="http://en.wikipedia.org/wiki/Type_inference">type inference</a>. It's pretty neat, and supports imperative programming as well as object-oriented constructs for when you need them. As a language, I've found few things wrong with it, except for the edit-compile-run cycle (I prefer the edit-run cycle you get in a language like Scheme, or even Python), but OCaml does actually have a toplevel (the toplevel isn't crippled either, but it doesn't seem realistic to not compile for testing, at least I haven't yet found it to be). 
-</p>
-
-<p>Anyway, among all the amazing features of OCaml, the two that stand out as being the most useful are pattern matching (on types) and the simplicity of defining new types and creating constructors:</p>
-
-<pre><code class="ocaml">type astnode = 
-| AndNode of astnode * astnode
-| OrNode of astnode * astnode
-| NotNode of astnode 
-| IdNode of bool
-
-let rec eval_node (n: astnode) = 
-  match n with
-  | AndNode (l, r) -> (eval_node l) && (eval_node r)
-  | OrNode (l, r) -> (eval_node l) || (eval_node r)
-  | NotNode l -> not (eval_node l)
-  | IdNode v -> v
-
-eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
-</code></pre>
-
-<p>Of course, the type annotation, <code class="inline">(n: astnode)</code>, is optional due to the type inference engine, but the above example shows a simple example type that might be used when defining a language to do boolean arithmetic. It's quick to see that the combination of type constructors (like the <code class="inline">IdNode</code> above) and pattern matching simplify this incredibly.
-</p>
-
-<p>But, we don't get this sort of coolness in Python. No, in Python, we can make classes, but we do not get type checking of any kind, unless of course we do it at runtime manually. That's because Python is <a href="http://en.wikipedia.org/wiki/Type_system#Dynamic_typing">dynamically typed</a>.</p>
-
-<p>On the other hand, if we <em>really</em> want to, we can use the built in functions <code class="inline">isinstance</code> and <code class="inline">type</code> to raise errors when incompatible types are passed along to functions. This is slow, but it works. And, in some cases, like the one I'm about to show, maybe it doesn't matter, if you get certain benefits.</p>
-
-<p>Consider a language, like before, that does boolean arithmetic. It'll support boolean <abbr title="Both true">AND</a> (&amp;), <abbr title="One or the other true">OR</abbr> (|), <abbr title="One or the other true, but not both">XOR</abbr> (^) and NOT (!). A valid expression in this language is of the form <code class="inline">t & !(f | t)</code> which evaluates to <code class="inline">false</code>.</p>
-
-<p>I've created two different parsers for this language. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bptuples.py" rel="nofollow">bptuples</a>, I create an <a href="http://en.wikipedia.org/wiki/Abstract_syntax_tree" title="Abstract Syntax Tree">AST</a> using Python tuples of the form <code class="inline">('AndNode', t, f)</code>. In <a href="http://hg.apgwoz.com/boolinterp/file/0c592ee06c7f/bpnodes.py" rel="nofollow">bpnodes</a>, however, I take a more elegant approach when building the <abbr title="Abstract Syntax Tree">AST</abbr>&mdash;I create "OCaml like" type constructors.</p>
-
-<pre><code class="python">
-ASTNode = deftype('ASTNode', ())
-AndNode = deftype('AndNode', (ASTNode, ASTNode,), ASTNode)
-OrNode = deftype('OrNode', (ASTNode, ASTNode,), ASTNode)
-XorNode = deftype('XorNode', (ASTNode, ASTNode,), ASTNode)
-NotNode = deftype('NotNode', (ASTNode,), ASTNode)
-IdNode = deftype('IdNode', (bool,), ASTNode)
-</code></pre>
-
-<p>This defines all the Python classes needed at runtime. <code class="inline">deftype</code> takes up to 3 arguments. The first argument is the name of the class, the second is a tuple of classes which it can accept as arguments, and the optional third argument is a parent class to inherit from. The optional third argument is only necessary if you need multiple constructors for the same type, as in the case of our OCaml example above, and this example here.</p>
-
-<p>The code for <code class="inline">deftype</code> is actually pretty simple:</p>
-
-<pre><code class="python">
-def deftype(name, types, extends=None):
-    class _dtype(object):
-        def __init__(self, *args):
-            for i, a in enumerate(zip(args, self.types)):
-                if isinstance(a[0], a[1]):
-                    self.__setattr__('op%d' % i, a[0])
-                else:
-                    raise TypeError("%s expected argument of type " % \
-                                        (self.__class__.__name__,
-                                         str(a[1])))
-    if extends:
-        parents = (_dtype, extends,)
-    else:
-        parents = (_dtype,)
-    return type(name, parents, {'types': types})
-</code></pre>
-
-<p>Basically, what it does is use the Python built-in <code class="inline">type</code> to construct a class at runtime with an attribute called <code class="inline">types</code> which holds the class names of the expected arguments to the constructor of the type. On construction, the arguments are enumerated and attributes are created of the form <code class="inline">op0</code>...<code class="inline">opN</code>.</p>
-
-<p>It's a mouthful, for sure, but all that means is that when we construct a new <code class="inline">AndNode</code>, we are sure that the arguments the instance was created with are indeed <code class="inline">ASTNode</code>s, and those nodes are accessible at <code class="inline">op0</code> and <code class="inline">op1</code>.</p>
-
-<p>At a cursory glance, you might be thinking, "but what does this actually do for us?" Well, honestly, not much, but you do get to abstract out some more runtime type checking and do dynamic dispatch with the help of some Python decorators. Observe:</p>
-
-<pre><code class="python">
-@multimethod(AndNode)
-def interpret(ast):
-    return interpret(ast.op0) and interpret(ast.op1)
-
-@multimethod(XorNode)
-def interpret(ast):
-    left = interpret(ast.op0)
-    right = interpret(ast.op1)
-    return (left or right) and not (left and right)
-
-@multimethod(OrNode)
-def interpret(ast):
-    return interpret(ast.op0) or interpret(ast.op1)
-
-@multimethod(NotNode)
-def interpret(ast):
-    return not interpret(ast.op0)
-
-@multimethod(IdNode)
-def interpret(ast):
-    return ast.op0
-</code></pre>
-
-<p>That's the entire interpreter to walk the AST and evaluate boolean expressions, and is called via <code class="inline">interpret(parseBool(tokenizer('t & ! (t | f)')))</code>.</p>
-
-<p>In the tuple version, it's actually shorter when you use <code class="inline">if</code> statements, but this approach is much more readable in my opinion. The <a href="http://www.artima.com/weblogs/viewpost.jsp?thread=101605">multimethod decorator</a> runs the correct <code class="inline">interpret</code> based on the types of arguments.</p>
-
-<p> This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</p>
-
-
 ]]></content></entry>
 
 </feed>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged ocaml</title><link href="http://sigusr2.net/tags/ocaml.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-01-07T19:41:53Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Pattern Matching with "With"</title><link href="/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2: tagged ocaml</title><link href="http://sigusr2.net/tags/ocaml.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-04-18T07:15:17Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Pattern Matching with "With"</title><link href="http://sigusr2.net/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
 <span class="preamble">When I originally thought about adding pattern matching to Python, in the <a href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html">OCaml sense</a>, I ended up using a decorator that more or less registed a bunch of callbacks with a dispatch table based on the types of it's arguments.</span>
 </p>
 
@@ -97,7 +97,7 @@ with match('x y _', [1, 2, 3]) as (x, y):
 
 <p>Back then, I concluded with <q>This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</q> Today, I'll conclude the same way.</p>
 ]]></content></entry>
-<entry><title>Python Type Constructors a la OCaml</title><link href="/2008/Sep/30/python-type-constructors-like-ocaml.html"/><id>md5:5c9d3c4e3c5a50bf32b5481935fde949</id><updated>2008-09-30T07:00:00Z</updated><content type="html"><![CDATA[<p>
+<entry><title>Python Type Constructors a la OCaml</title><link href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html"/><id>md5:5c9d3c4e3c5a50bf32b5481935fde949</id><updated>2008-09-30T07:00:00Z</updated><content type="html"><![CDATA[<p>
 <span class="preamble">Earlier this summer, I started taking a look at the <a href="http://caml.inria.fr/" title="Objective-Caml">OCaml</a> programming language in anticipation of the compilers class I'm taking this fall.</span>
 </p>
 
