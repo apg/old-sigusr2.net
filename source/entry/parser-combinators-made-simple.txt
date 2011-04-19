@@ -201,7 +201,7 @@ None
 &gt;&gt;&gt; conditional = oneof("&gt;&lt;=")
 &gt;&gt;&gt; colonToken = matchchr(":")
 &gt;&gt;&gt; codeBlock = alt(matchstr("if"), matchstr("for"))
-&gt;&gt;&gt; whileStmt = all(whileToken, conditional, colonToken, codeBlock)
+&gt;&gt;&gt; whileStmt = sequence(whileToken, conditional, colonToken, codeBlock)
 &gt;&gt;&gt; whileStmt('while&lt;:if')
 ('while&lt;:if', '')
 &gt;&gt;&gt; whileStmt('while&gt;:if')
