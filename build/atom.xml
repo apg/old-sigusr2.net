@@ -1,4 +1,70 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-07-01T07:54:35Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Parser Combinators Made Simple</title><link href="http://sigusr2.net/2011/Apr/18/parser-combinators-made-simple.html"/><id>md5:2d4da36bd3daa6959e8b4f79b8094fc4</id><updated>2011-04-18T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Parsing theory has been around for quite a long time, but it is often thought of as magic by the swarms of people who haven't bothered to read about it, and see how plain and dry it actually is. Algorithms for parsing <a href="http://en.wikipedia.org/wiki/LR_parser">LR(k)</a> grammars (meaning Left-to-right, Right-most derivation, k tokens lookahead) for instance, normally just traverse a state machine that was computed before hand (either by hand, or by using a parser generator such as <a href="http://www.gnu.org/software/bison/">bison</a> or <a href="http://en.wikipedia.org/wiki/Yacc">yacc</a>). Sure, there are many things to trip on, tedious to track down ambiguities, and other issues, but the general theory of parsing has remained unchanged for years&mdash;one might say, it is a solved problem.<sup><a id="return-solvedproblem" href="#note-solvedproblem">[1]</a></span></p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>SIGUSR2</title><link href="http://sigusr2.net/atom.xml" rel="self" /><link href="http://sigusr2.net/"/><updated>2011-08-09T15:40:06Z</updated><author><name>Andrew Gwozdziewycz</name></author><id>md5:ec2c8804a8dac6a866e1a43cfce32fc1</id><entry><title>Code Blogging: Call With Current Continuation for Python</title><link href="http://sigusr2.net/2011/Aug/09/call-cc-for-python.html"/><id>md5:8500c32ef5f06561d93db07571665afe</id><updated>2011-08-09T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble"><a href="http://en.wikipedia.org/wiki/Continuation">Continuations</a> are a snapshot of the programs control state at a given time. The concept exists in every language, but only some allow a programmer to bundle it up into an actual object to manipulate in some way.</p>
+
+<p>That bundled, first-class, version of a continuation is applyable, like a function, and depending on the language is either invokable once (one-shot) or multiple times (multi-shot). In the case of multi-shot continuations, one can imagine a great number of use cases such as building coroutines, efficient backtracking and stateful web-servers.</p>
+
+<p>For one-shot continuations, the number of things that can be done with them is more limited, but they are still extremely useful. <strike>These are often described as "escape-continuations" and are often compared to something like <code class="inline">setjmp</code> / <code class="inline">longjmp</code>&mdash;they can "escape" back to a save point, but can never jump forward. As such, often the example given for uses of them is exception handling.</strike><strong><sup><a href="#note-haste-in-writing">[1]</a></sup></strong> For instance, one couldn't implement nondeterminism as in Prolog because the continuation needs to be invoked multiple times to collect multiple values<sup><a href="#note-one-shot">[2]</a></sup></p>
+
+<p>Anyway, most languages do not have either type of first class continuations, and more often than not, already have the common use cases of them as part of the language.</p>
+
+<p>For example, Python has exception handling built in, as well as the <code class="inline">yield</code> statement which supports a limited coroutine mechanism. For actual coroutines, an extension called <a href="http://pypi.python.org/pypi/greenlet">greenlet</a> can be used, which implements symmetric coroutines<sup><a href="#note-symmetric-coroutines">[3]</a></sup>.
+
+<p>What do coroutines have to do with continuations, aside from the fact that multi-shot continuations can be used to implement coroutines?</p>
+
+<p>Well, it turns out<sup><a href="#note-revisiting-coroutines">[4]</a></sup> that symmetric coroutines are all that is needed to support one-shot continuations, and with greenlet, this can be done in Python:</p>
+
+<pre><code class="python">import greenlet
+
+class ContinuationError(Exception): pass
+
+def callcc(f):
+    saved = [greenlet.getcurrent()]
+
+    def cont(val):
+        if saved[0] == None:
+            raise ContinuationError("one shot continuation called twice")
+        else:
+            return saved[0].switch(val)
+
+    def new_cr():
+        v = f(cont)
+        return cont(v)
+
+    value_cr = greenlet.greenlet(new_cr)
+    value = value_cr.switch()
+    saved[0] = None
+    return value
+</code></pre>
+
+<p>Its use is illustrated in the following simple example which adds 3 numbers, but only when the first one is not 5. In that case, 0 is returned from the computation:</p>
+
+<pre><code class="python">def add3(x, y, z):
+    def add_x_but_not_when_5(cont):
+        if x == 5:
+            cont(0)
+        else:
+            cont(x + y + z)
+    return callcc(add_x_but_not_when_5)
+</code></pre>
+
+<p>Using it:</p>
+
+<pre><code class="python">&gt;&gt;&gt; add3(5, 6, 7)
+0
+&gt;&gt;&gt; add3(6, 7, 8)
+21
+&gt;&gt;&gt;
+</code></pre>
+
+
+
+<ol class="footnotes">
+    <li id="note-haste-in-writing">My haste in writing caused me to write something that wasn't correct. One-shot continuations and escape continuations are not the same thing. Thanks to the commenter below who pointed out my error.</li>
+    <li id="note-one-shot">Carl Bruggeman, Oscar Waddell, and R. Kent Dybvig; "Representing control in the presence of one-shot continuations"; In Proceedings of the SIGPLAN '96 Conference on Programming Language Design and Implementation, 99-107, May 1996.</li>
+    <li id="note-symmetric-coroutines">Symmetric coroutines have a single control transfer which allows them individually to switch amongst themselves. In the Greenlet library, this is the <code class="inline">switch</code> method. Asymmetric coroutines, which is the other type, have two control operations, <code class="inline">yield</code> and <code class="inline">resume</code>, which makes them subordinates to their caller.</li>
+    <li id="note-revisiting-coroutines">Ana Lucia de Moura and Roberto Ierusalimschy; "Revisiting Coroutines"; 2004</li> 
+</ol>
+]]></content></entry>
+<entry><title>Parser Combinators Made Simple</title><link href="http://sigusr2.net/2011/Apr/18/parser-combinators-made-simple.html"/><id>md5:2d4da36bd3daa6959e8b4f79b8094fc4</id><updated>2011-04-18T00:00:00Z</updated><content type="html"><![CDATA[<p><span class="preamble">Parsing theory has been around for quite a long time, but it is often thought of as magic by the swarms of people who haven't bothered to read about it, and see how plain and dry it actually is. Algorithms for parsing <a href="http://en.wikipedia.org/wiki/LR_parser">LR(k)</a> grammars (meaning Left-to-right, Right-most derivation, k tokens lookahead) for instance, normally just traverse a state machine that was computed before hand (either by hand, or by using a parser generator such as <a href="http://www.gnu.org/software/bison/">bison</a> or <a href="http://en.wikipedia.org/wiki/Yacc">yacc</a>). Sure, there are many things to trip on, tedious to track down ambiguities, and other issues, but the general theory of parsing has remained unchanged for years&mdash;one might say, it is a solved problem.<sup><a id="return-solvedproblem" href="#note-solvedproblem">[1]</a></span></p>
 
 <p>When learning about parsing for the first time though, the idea of a <a href="http://en.wikipedia.org/wiki/Recursive_descent_parser">recursive descent parser</a> is often taught first. Recursive descent parsers, are relatively simple to reason about, to write and to shoot yourself in the foot with. A simple <a href="http://en.wikipedia.org/wiki/LL_parser">LL(1)</a> parser (meaning Left-to-right, Left-most derivation, 1 token lookahead), for instance, can't parse <a href="http://en.wikipedia.org/wiki/Left_recursion">left-recursive grammars</a>, which is the most natural way to write certain types of grammars<sup><a id="return-leftrecursion" href="#note-leftrecursion">[2]</a></sup>. Typically, when writing a recursive descent parser, the author takes the grammar and produces a function for each production (non-terminal). Each function then reads a token and recurses to the other non-terminals in the grammar reachable from the current production. And, eventually, at the end of the function the sub parts will be combined in such a way that a <a href="http://en.wikipedia.org/wiki/Parse_tree">parse tree</a> will be created.</p>
 
@@ -162,13 +228,13 @@ None
 <p>This is really simple. We take a list of parser functions and try them one by one, from left to right, until we find one that passes.</p>
 
 <pre><code>&gt;&gt;&gt; iforwhileorfor = alt(matchstr('if'), matchstr('while'), matchstr('for'))
-&gt;&gt;&gt; if_while_for('if')
+&gt;&gt;&gt; iforwhileorfor('if')
 ('if', '')
-&gt;&gt;&gt; if_while_for('while')
+&gt;&gt;&gt; iforwhileorfor('while')
 ('while', '')
-&gt;&gt;&gt; if_while_for('for')
+&gt;&gt;&gt; iforwhileorfor('for')
 ('for', '')
-&gt;&gt;&gt; if_while_for('foof')
+&gt;&gt;&gt; iforwhileorfor('foof')
 None
 </code></pre>
 
@@ -195,7 +261,7 @@ None
 &gt;&gt;&gt; conditional = oneof("&gt;&lt;=")
 &gt;&gt;&gt; colonToken = matchchr(":")
 &gt;&gt;&gt; codeBlock = alt(matchstr("if"), matchstr("for"))
-&gt;&gt;&gt; whileStmt = all(whileToken, conditional, colonToken, codeBlock)
+&gt;&gt;&gt; whileStmt = sequence(whileToken, conditional, colonToken, codeBlock)
 &gt;&gt;&gt; whileStmt('while&lt;:if')
 ('while&lt;:if', '')
 &gt;&gt;&gt; whileStmt('while&gt;:if')
@@ -865,105 +931,6 @@ KeyError: 2
     return null;
 }
 </code></pre>
-]]></content></entry>
-<entry><title>Pattern Matching with "With"</title><link href="http://sigusr2.net/2010/Apr/28/pattern-matching-with-with.html"/><id>md5:862f9d6d39aec112eecc179210926c60</id><updated>2010-04-28T06:29:00Z</updated><content type="html"><![CDATA[<p>
-<span class="preamble">When I originally thought about adding pattern matching to Python, in the <a href="http://sigusr2.net/2008/Sep/30/python-type-constructors-like-ocaml.html">OCaml sense</a>, I ended up using a decorator that more or less registed a bunch of callbacks with a dispatch table based on the types of it's arguments.</span>
-</p>
-
-<p>That worked out fine, but it didn't really have the feel of <a href="http://en.wikipedia.org/wiki/Pattern_matching">pattern matching</a> like you get with real <a href="http://en.wikipedia.org/wiki/Algebraic_data_type">algebraic data types</a>. If you recall, I was playing with the following example with the decorator approach:
-</p>
-
-<pre><code class="ocaml">type astnode = 
-| AndNode of astnode * astnode
-| OrNode of astnode * astnode
-| NotNode of astnode 
-| IdNode of bool
-
-let rec eval_node (n: astnode) = 
-  match n with
-  | AndNode (l, r) -> (eval_node l) && (eval_node r)
-  | OrNode (l, r) -> (eval_node l) || (eval_node r)
-  | NotNode l -> not (eval_node l)
-  | IdNode v -> v
-
-eval_node (AndNode (IdNode true, IdNode false)) (* returns false *)
-</code></pre>
-
-<p>The idea of that program was to create a small language to evaluate boolean expressions. In OCaml, it's quite succinct&mdash;too succinct, in all honesty. That's it. Of course it doesn't include a parser, or a lexer, but that's the crux of it.
-</p>
-
-<p>Since that original post, I've posted about two other <q>language hacks</q> that I've attempted to create&mdash;both of which use <a href="http://www.python.org/dev/peps/pep-0343/">context managers</a> and the <code class="inline">with</code>-statement, <a href="http://sigusr2.net/2009/Oct/01/python-worlds.html">worlds</a> and <a href="http://sigusr2.net/2009/Mar/04/dispatching-with-with.html">dispatching urls (a la routes)</a>.</p>
-
-<p>Basically, it occurred to me yesterday, that <code class="inline">with</code>'s <code class="inline">as</code> clause did destructuring of tuples, in the same way that the assignment statement does. That is to say:</p>
-
-<pre><code class="python">a, b, c = 1, 2, 3</code></pre>
-
-<p>Will correctly assign <code class="inline">a = 1</code>, <code class="inline">b = 2</code>, <code class="inline">c = 3</code>, in the same exact way that:</p>
-
-<pre><code class="python">from contextlib import contextmanager
-@contextmanager
-def assign(*args):
-    yield args
-
-with assign(1, 2, 3) as (a, b, c,):
-    pass
-</code></pre>
-
-<p>will assign <code class="inline">a = 1</code>, <code class="inline">b = 2</code>, <code class="inline">c = 3</code>.</p>
-
-<p>I'll admit, that doesn't look very powerful by itself, but when you consider the possibilities, you might come up with something like I did:</p>
-
-<pre><code class="python">with structural_matching((1, 2, 3)) as match:
-    with match('list() x y z') as (x, y, z):
-        print x, y, z
-    with match('tuple() x _ z') as (x, z):
-        print "tuple case"
-        print x, z
-</code></pre>
-
-<p>which looks incredibly close to pattern matching in OCaml. I was super excited&mdash;but it won't work.</p>
-
-<p>See, <code class="inline">match</code> is a context manager that gets returned with the intention that if the <code class="inline">__enter__()</code> method raises a <code class="inline">NoMatch</code> exception, it skips the "body" and goes to the next match. The problem with that thinking however is simple&mdash;there's no way for <code class="inline">__enter__</code> to force skipping the body due to rejected <a href="http://www.python.org/dev/peps/pep-0377/">PEP-377</a>!</p>
-
-<p>In the example above (full source <a href="http://files.sigusr2.net/match1.py">here</a>), raising <code class="inline">NoMatch</code> in the first <code class="inline">match</code> block, results in control being passed back to the <code class="inline">__exit__()</code> of the outer context manager&mdash;<code class="inline">structural_matching</code>. And to think, I got my hopes up!</p>
-
-<p>But nevertheless, I pressed on, and hacked <a href="http://files.sigusr2.net/match2.py">together</a>, a <code class="inline">match</code>, that can destructure the following examples correctly:</p>
-
-<pre><code class="python">with match('[1:3]', [1, 2, 3, 4]) as (a,):
-    print a
-# [2, 3]
-
-with match('[1:]', "hello world") as (a,):
-    print a
-# ('e', 'ello world')
-
-with match('str() x y', 'hello world') as (h, e):
-    print 'h = ', h, ',',
-    print 'e = ', e
-# h = h, e = e
-
-with match('x y z', [1, 2, 3]) as (x, y, z,):
-    print z, y, x
-# 3 2 1
-
-class obj(object):
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-
-with match('obj() .x .y', obj('x-ity', 'y-ity')) as (x, y):
-    print 'x = ', x, ',',
-    print 'y = ', y
-# x = x-ity, y = y-ity
-
-with match('x y _', [1, 2, 3]) as (x, y):
-    print x, y
-# 1, 2
-</code></pre>
-
-<p>It's much less useful considering you can't put it in the <code class="inline">structural_match</code> block ,like you would in a <em>real</em> <code class="inline">match</code> statement, but it's all we've got.</p>
-
-<p>Back then, I concluded with <q>This is as close to OCaml like  pattern matching that we're going to get, at least as far as I know how to get, but it's sort of cool, and definitely a hack.</q> Today, I'll conclude the same way.</p>
 ]]></content></entry>
 
 </feed>

@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Content-Language" content="en-us" />
+    <meta name="ROBOTS" content="all" />
+    <meta name="googlebot" content="noodp" />
+    <meta name="MSSmartTagsPreventParsing" content="true" />
+    <meta name="Copyright" content="Copyright 2008 Andrew Gwozdziewycz" />
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <meta name="author" content="Andrew Gwozdziewycz" />
+    <link rel="alternate" title="Latest Entries Atom" href="/atom.xml" type="application/atom+xml" />
+    <link rel="shortcut icon" href="/favicon.ico" />        
+
+    <link rel="stylesheet" href="http://sigusr2.net/css/screen.css" media="screen,projector" type="text/css" />
+    <link rel="stylesheet" href="/css/today.css" media="screen,projector" type="text/css" />
+    <title>SIGUSR2 
+ &gt; Code Blogging: Call With Current Continuation for Python
+</title>
+</head>
+<body>
+  <div id="wrapper">
+    <div id="header">
+      <h1><a href="/" title="SIGUSR2">SIGUSR2</a></h1>
+    </div>
+    <div id="content-wrapper" class="clearfix">
+      <div id="content">
+        
+<h2>Code Blogging: Call With Current Continuation for Python</h2>
+<h4>August 09, 2011 <span class="permalink"><a href="/2011/Aug/09/call-cc-for-python.html" title="permalink">#</a></span></h4>
+<p><span class="preamble"><a href="http://en.wikipedia.org/wiki/Continuation">Continuations</a> are a snapshot of the programs control state at a given time. The concept exists in every language, but only some allow a programmer to bundle it up into an actual object to manipulate in some way.</p>
+
+<p>That bundled, first-class, version of a continuation is applyable, like a function, and depending on the language is either invokable once (one-shot) or multiple times (multi-shot). In the case of multi-shot continuations, one can imagine a great number of use cases such as building coroutines, efficient backtracking and stateful web-servers.</p>
+
+<p>For one-shot continuations, the number of things that can be done with them is more limited, but they are still extremely useful. <strike>These are often described as "escape-continuations" and are often compared to something like <code class="inline">setjmp</code> / <code class="inline">longjmp</code>&mdash;they can "escape" back to a save point, but can never jump forward. As such, often the example given for uses of them is exception handling.</strike><strong><sup><a href="#note-haste-in-writing">[1]</a></sup></strong> For instance, one couldn't implement nondeterminism as in Prolog because the continuation needs to be invoked multiple times to collect multiple values<sup><a href="#note-one-shot">[2]</a></sup></p>
+
+<p>Anyway, most languages do not have either type of first class continuations, and more often than not, already have the common use cases of them as part of the language.</p>
+
+<p>For example, Python has exception handling built in, as well as the <code class="inline">yield</code> statement which supports a limited coroutine mechanism. For actual coroutines, an extension called <a href="http://pypi.python.org/pypi/greenlet">greenlet</a> can be used, which implements symmetric coroutines<sup><a href="#note-symmetric-coroutines">[3]</a></sup>.
+
+<p>What do coroutines have to do with continuations, aside from the fact that multi-shot continuations can be used to implement coroutines?</p>
+
+<p>Well, it turns out<sup><a href="#note-revisiting-coroutines">[4]</a></sup> that symmetric coroutines are all that is needed to support one-shot continuations, and with greenlet, this can be done in Python:</p>
+
+<pre><code class="python">import greenlet
+
+class ContinuationError(Exception): pass
+
+def callcc(f):
+    saved = [greenlet.getcurrent()]
+
+    def cont(val):
+        if saved[0] == None:
+            raise ContinuationError("one shot continuation called twice")
+        else:
+            return saved[0].switch(val)
+
+    def new_cr():
+        v = f(cont)
+        return cont(v)
+
+    value_cr = greenlet.greenlet(new_cr)
+    value = value_cr.switch()
+    saved[0] = None
+    return value
+</code></pre>
+
+<p>Its use is illustrated in the following simple example which adds 3 numbers, but only when the first one is not 5. In that case, 0 is returned from the computation:</p>
+
+<pre><code class="python">def add3(x, y, z):
+    def add_x_but_not_when_5(cont):
+        if x == 5:
+            cont(0)
+        else:
+            cont(x + y + z)
+    return callcc(add_x_but_not_when_5)
+</code></pre>
+
+<p>Using it:</p>
+
+<pre><code class="python">&gt;&gt;&gt; add3(5, 6, 7)
+0
+&gt;&gt;&gt; add3(6, 7, 8)
+21
+&gt;&gt;&gt;
+</code></pre>
+
+
+
+<ol class="footnotes">
+    <li id="note-haste-in-writing">My haste in writing caused me to write something that wasn't correct. One-shot continuations and escape continuations are not the same thing. Thanks to the commenter below who pointed out my error.</li>
+    <li id="note-one-shot">Carl Bruggeman, Oscar Waddell, and R. Kent Dybvig; "Representing control in the presence of one-shot continuations"; In Proceedings of the SIGPLAN '96 Conference on Programming Language Design and Implementation, 99-107, May 1996.</li>
+    <li id="note-symmetric-coroutines">Symmetric coroutines have a single control transfer which allows them individually to switch amongst themselves. In the Greenlet library, this is the <code class="inline">switch</code> method. Asymmetric coroutines, which is the other type, have two control operations, <code class="inline">yield</code> and <code class="inline">resume</code>, which makes them subordinates to their caller.</li>
+    <li id="note-revisiting-coroutines">Ana Lucia de Moura and Roberto Ierusalimschy; "Revisiting Coroutines"; 2004</li> 
+</ol>
+
+
+<h5 class="tag-list">Tagged: 
+  <a href="/tags/python.html">python</a>
+     , <a href="/tags/continuations.html">continuations</a>
+     , <a href="/tags/greenlet.html">greenlet</a>
+     , <a href="/tags/callcc.html">callcc</a>
+     
+</h5>
+
+<div id="disqus_thread"></div><script type="text/javascript" src="http://disqus.com/forums/sigusr2/embed.js"></script><noscript><a href="http://sigusr2.disqus.com/?url=ref">View the discussion thread.</a></noscript><a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+      </div>
+      <div id="sidebar">
+        <h2>About</h2>
+        <p>
+          Hi, I'm <a href="http://apgwoz.com" title="My Homepage">Andrew</a>. I sometimes use this space to write about things I'm doing related to programming.
+        </p>
+        <p>
+          You should follow me on <a href="http://twitter.com/apgwoz">Twitter</a>.
+        </p>
+	<h2>Inside</h2>
+	<ul>
+          <li><a href="/page/man.html" title="man page for signal(7)">man signal(7)</a></li>
+	</ul>
+
+        <h2>Syndicate</h2>
+        <ul>
+          <li><a href="/atom.xml" title="Atom Feed">Atom</a></li>
+        </ul>
+        <h2>Archives</h2>
+        <ul>
+        
+        <li><a href="/2011/Aug/" title="August 2011 (1)">August 2011 (1)</a></li>
+        
+        <li><a href="/2011/Apr/" title="April 2011 (1)">April 2011 (1)</a></li>
+        
+        <li><a href="/2011/Jan/" title="January 2011 (1)">January 2011 (1)</a></li>
+        
+        <li><a href="/2010/Nov/" title="November 2010 (1)">November 2010 (1)</a></li>
+        
+        <li><a href="/2010/Oct/" title="October 2010 (3)">October 2010 (3)</a></li>
+        
+        <li><a href="/2010/Jun/" title="June 2010 (3)">June 2010 (3)</a></li>
+        
+        <li><a href="/2010/Apr/" title="April 2010 (1)">April 2010 (1)</a></li>
+        
+        <li><a href="/2010/Jan/" title="January 2010 (1)">January 2010 (1)</a></li>
+        
+        <li><a href="/2009/Nov/" title="November 2009 (1)">November 2009 (1)</a></li>
+        
+        <li><a href="/2009/Oct/" title="October 2009 (1)">October 2009 (1)</a></li>
+        
+        <li><a href="/2009/Sep/" title="September 2009 (1)">September 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jul/" title="July 2009 (1)">July 2009 (1)</a></li>
+        
+        <li><a href="/2009/May/" title="May 2009 (1)">May 2009 (1)</a></li>
+        
+        <li><a href="/2009/Apr/" title="April 2009 (1)">April 2009 (1)</a></li>
+        
+        <li><a href="/2009/Mar/" title="March 2009 (1)">March 2009 (1)</a></li>
+        
+        <li><a href="/2009/Feb/" title="February 2009 (1)">February 2009 (1)</a></li>
+        
+        <li><a href="/2009/Jan/" title="January 2009 (1)">January 2009 (1)</a></li>
+        
+        <li><a href="/2008/Dec/" title="December 2008 (1)">December 2008 (1)</a></li>
+        
+        <li><a href="/2008/Sep/" title="September 2008 (3)">September 2008 (3)</a></li>
+        
+        </ul>
+      </div>
+    </div>
+
+    <div id="footer">
+       &copy; 2009 <a href="http://apgwoz.com/">Andrew Gwozdziewycz</a>, I like bees. Powered by Modest. Not tested in IE, because it sucks.
+    </div>
+  </div>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-354660-9");
+pageTracker._trackPageview();
+</script>
+</body>
+</html>
