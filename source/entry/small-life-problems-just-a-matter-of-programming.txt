@@ -1,0 +1,24 @@
+Title: Small, Life Problems? Just a Matter of Programming
+date: 2012-03-23
+tags: c, dwm, hack, keep-it-simple-stupid
+comments: True
+published: True
+---
+<p><span class="preamble">Last year, we had a daughter, and it became my mission to spend at least 15 minutes a day with her. I'd love to spend much more time with her daily, but her bedtime (and spastic sleep schedule) nearly overlaps with my work schedule + commute.</span></p>
+
+<p>People in NYC, for whatever reason, like to go to work late and stay late. I can't help but wonder if this is related to some perception of avoiding crowded trains, but most of the jobs I've had have done similar things. And we all know that if everyone is doing something to avoid the same problem, no one is avoiding it at all.</p>
+
+<p>Until the switch to <a href="http://en.wikipedia.org/wiki/Daylight_Savings_Time">DST</a>, I was doing fairly well ensuring that I left the office right at 6 o'clock (a half hour earlier than others in the office&mdash;I come in at least a half hour earlier to make up for this) to catch the train that would get me home by 6:45. But, as the days got longer, there suddenly was no visual cue that it was time for me to go.</p>
+
+<p>I use <a href="http://dwm.suckless.org">dwm</a> as my desktop environment/window manager. If you're not familiar, it's a very simple tiling window manager for <a href="http://en.wikipedia.org/wiki/X11">X</a>, which, out of the box doesn't even have a clock. It's stupidly easy to get a clock on the screen of course, but for whatever reason I hadn't taken the time to configure it.<sup><a href="#footnote-screen-clock">[1]</a></sup></p>
+
+<p>It dawned on me yesterday that if dwm supported multiple colors for the status bar, I could turn the clock a different color just before 6 o'clock&mdash;my target departure. That'd be my visual cue.</p>
+
+<p>Well, it turns out that multiple colors in the status bar is a <a href="http://dwm.suckless.org/patches/statuscolors">solved problem</a>, and so setting this up <a href="https://github.com/apgwoz/dwm/blob/master/dwmstatus.c#L114">was just a small matter of programming</a>. Now, at 5:45, the background of my clock turns red indicating to me that it's time to start wrapping things up for the day.</p>
+
+<p>Is it the most robust solution out there? It works, but certainly not. When I need to create some other notification, monitor some stat, or watch the weather&mdash;well, I've learned that it's just a simple matter of programming.<sup><a href="#footnote-matter">[2]</a></sup></p>
+
+<ol class="footnotes">
+<li id="footnote-screen-clock">Actually, this isn't entirely true. While dwm didn't display a clock, my <a href="http://gnu.org/software/screen">GNU screen</a> status bar did&mdash;of course that only shows on tag 1&mdash;which I don't see when my screen is fullscreen <a href="http://gnu.org/software/emacs">Emacs</a>.</li>
+<li id="footnote-matter">"HA! You idiot. This is not how the Jargon file defines SMOP!" Right you are. I'm not using the ironic definition. I'm saying that sometimes simple problems have stupidly simple solutions that aren't elegant but do the job anyway.</li>
+</ol>
