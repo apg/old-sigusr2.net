@@ -1,0 +1,24 @@
+Title: Side Projects and your Full-Time Job
+date: 2012-09-04
+tags: career, deep thoughts
+---
+
+<p><span class="preamble">Programmers who partake in side projects have a significant advantage
+career-wise over those who don't. There are millions of reasons that
+this is true, but one such reason is that of hiring.</span></p>
+
+<p>Given two nearly identical candidates, with the exception of side
+projects (e.g. candidate <em>A</em> has none, while candidate <em>B</em> writes
+programming languages on the side), candidate <em>B</em> will almost certainly
+get an offer before candidate <em>A</em>.</p>
+
+<p>Of course this assertion is due to the perception that if one is
+motivated enough to work outside of work, and eager enough to learn
+new technologies they'll have no trouble taking on more demanding
+tasks, or tasks which require a decent amount of "ramp-up."</p>
+
+<p>However, there is another side of this coin. Programmers who actively
+work on side projects might be thinking more about their side projects
+than their actual job.</p>
+
+<p>Perhaps to them, "work" is just 40 hours of "<a href="http://blip.tv/clojure/hammock-driven-development-4475586">Hammock Time</a>".</p>
