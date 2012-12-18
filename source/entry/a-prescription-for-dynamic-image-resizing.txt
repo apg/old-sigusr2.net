@@ -1,0 +1,51 @@
+title: A Prescription for Dynamic Image Resizing
+date: 2012-12-18
+tags: servers, images
+published: True
+---
+<p>
+   <span class="preamble">Everyone seems to have a story for how they do image resizing for a website. Some resize in advance, while others resize dynamically. <a href="https://github.com/apgwoz/phizer">Phizer</a> (PHoto resIZER), in some ways, does both.</span>
+</p>
+
+<p>At <a href="http://www.okcupidlabs.com/#ny">Labs</a>, one of our products, <a href="http://combosaurus.com">Combosaurus</a> requires that we serve a lot of images, in at least 3 different size configurations. This of course meant that we had to make a choice<sup><a href="#note-maybe-not-the-last">[1]</a></sup>.</p>
+
+<p>Do we do resizing up front, storing each image <tt>N</tt> times, where <tt>N</tt> is the number of size configurations, or do we do the resizing on the fly?</p>
+
+<p>Our sister company, <a href="http://www.okcupid.com">OkCupid</a>, choose the latter. It makes a lot of sense really. Dynamically resizing images means that a designer isn't constrained, seemingly forever, to image sizes determined before the site has any users. And, while yes, one could go through and resize all the images to accommodate new sizes, it's obviously going to take a lot of time and effort to resize millions of images&mdash;so we chose to follow suit. They also have a CDN in front of their resizer, something that we'll almost certainly do in the future, but haven't needed to do yet.</p>
+
+<p>One interesting thing to note about the problem of dynamic resizing is that the image resizing operations are fairly cheap. In fact, in everything I've tested in solving this problem, the IO is always the bottleneck&mdash;never the resize. (This is perhaps counter-intuitive to most people, as I've had numerous people virtually gasp at that thought).</p>
+
+<p>But, because of this fact, it's relatively easy to write something that performs exceptionally well even in a dynamic language like Python&mdash;so that's what we did.</p>
+
+<p>For our first implementation, we enlisted Python's <a href="http://docs.python.org/2/library/multiprocessing.html">multiprocessing</a>, <a href="http://docs.python.org/2/library/basehttpserver.html">BaseHTTPServer</a> and the <a href="http://www.pythonware.com/products/pil/">Python Imaging Library</a>. We knew this wouldn't scale forever, but by pre-forking 30 processes, and creating a shared cache between them, we were able to quickly prototype the system, and launch it to our early alpha testers. With browser side caching, images loaded snappily and things were looking up.</p>
+
+<p>Last month the day came to replace the aging system<sup><a href="#note-parallelization">[2]</a></sup>. We have a lot more testers now than we had when we started, and the whole thing was due for a redesign. We wanted even more snappy loading of images, and more concurrency.</p>
+
+<p>The design of the original system was simple, and the new design shares quite a bit of the original high-level architecture. We use S3 to host all of the full-size<sup><a href="#note-resize">[3]</a></sup> images. Upon request, we check the full-size image cache, and if it's in there we resize, otherwise we download from S3, stick it in the cache and resize, before serving it back to the client<sup><a href="#note-caching">[4]</a></sup>.</p>
+
+<p>To avoid some potential craziness, we pre-white-list a few different size configurations for images. When a request is parsed, we interpret the code that was given in the URL and respond with an appropriately sized image. With this we get some of the benefits of pre-resizing<sup><a href="#note-benefits">[5]</a></sup>, and the obvious benefits of dynamic resizing.
+
+<p>And, to avoid a <tt>404</tt> while a file is in the process of going through the system, we temporarily serve photos through the resizer, via the webserver it was uploaded to&mdash;in other words, we have a single master (S3), and each webserver is a slave.</p>
+
+<p>The only thing that really hurt in the old system was <tt>BaseHTTPServer</tt>. We blocked everytime we needed to pull an image from an external machine. With a fixed number of processes and unknown latency, this meant that a (uncached) full page load (with maybe 40 images) would potentially spin for a while. This sucks.</p>
+
+<p>One solution is obvious, use evented IO to download the images, and to handle requests. Seems reasonable, but as everyone knows, doing anything even somewhat computationally intensive<sup><a href="#note-event-driven-cpu">[6]</a></sup> with evented IO is a bad idea, right?</p>
+
+<p>Well, that's where having multiple cores really comes in handy, and that's what we did&mdash;we made use of them.</p>
+
+<p>So, the rewrite of phizer does a few things differently. First, instead of using 30 pre-forked processes, it uses 5 (customizable of course) <a href="http://tornadoweb.org">Tornado</a> based processes. The first process maintains a resized-image cache as well. When a requested image (and size) is not cached, it proxies the request to an appropriate worker<sup><a href="#note-balance">[7]</a></sup>, which asynchronously downloads the image, resizes it appropriately and delivers it back to the master. The worker stores the full size download in a cache, too, so future fetches for a larger/smaller thumbnail take even less time.</p>
+
+<p>Images in cache are served in sub milliseconds. Images needing to be downloaded fully take some time&mdash;but this is mostly S3 latency. We're seeing 200ms or more in some cases on our development machines. All in all, we're happy with the performance thus far, and can certainly scale horizontally (we're on one machine right now).</p>
+
+<p>Anyway, we're releasing <a href="https://github.com/apgwoz/phizer">phizer</a>. Feel free to hack on it and make it even better. We certainly will be.</p>
+
+
+<ol class="footnotes">
+    <li id="note-maybe-not-the-last">It's certainly possible that we'll make a new choice later, but we're set on this for now.</li>
+    <li id="note-paralellization">The system <em>really</em> didn't like me pointing 4 different domains at it to take advantage of browser request parallelization.</li>
+    <li id="note-resize">though scaled down to something more reasonable before being archived on S3</li>
+    <li id="note-caching">The new architecture actually caches the thumbnails as well, but I'm getting ahead of myself</li>
+    <li id="note-benefits">Great cachability, constraints on the designer [which can easily be broken, of course]. Dynamic resizing of course is very flexible and non-committal.</li>
+    <li id="note-event-driven-cpu">And resizing images, despite being quick, does use a decent amount of CPU of course</li>
+    <li id="note-balance">CRC32(image-filename) % number backend processes</a>
+</ol>
