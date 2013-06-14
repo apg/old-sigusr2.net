@@ -1,0 +1,8 @@
+title: The Best Argument for OS X
+date: 2006-06-27
+---
+        <p>With all this talk of malware immunity and the <a href="http://www.apple.com/ilife/">iLife</a> apps, everybody seems to have left out the one feature of OS X that has prevented me from switching to Linux for development. No, it isn't because I am locked into iTunes - though I am.</p>
+<p>I'm talking about the most addictive, most over-looked and under-rated feature of OS X - the reason I feel claustrophobic when I'm stuck writing .NET on a Windows box.</p>
+<p>I'm talking about [Expose] (http://www.apple.com/macosx/features/expose/). </p>
+<p>Expose is a window management tool in OS X. It can be bound to keystrokes, mouse-button clicks, and corners of the screen. Upon activation, Expose will either (a) show your desktop, (b) tile all of your application windows into the visible area allowing you to select one, or (c) tile all of the windows of the currently active application.</p>
+<p>This might seem simple. You may think I'm too excited over a stupid little feature. In any case, if you ever get the chance to spend some time with a Mac, I highly recommend experimenting with Expose. Find a configuration that fits the way you work and just go with it for a few days. When you get back to your Windows or Linux environment, I'm betting you'll feel as claustrophobic as I do.</p>

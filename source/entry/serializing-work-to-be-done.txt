@@ -1,0 +1,239 @@
+title: Serializing Work to be Done
+date: 2011-04-15
+published: True
+tags: archive, meetup, java
+---
+<p><em>This post originally appeared on <a href="http://making.meetup.com/post/4639337121/serializing-work-to-be-done">Making Meetup</a>. It is being republished here for archive purposes.</em></p>
+
+<p>Activity feeds were a logical addition to <a href="http://www.meetup.com">Meetup</a> when they were added,
+and are still a valuable feature today. They provide a great summary
+for members that are actively engaged with many Meetups. They also
+aide in a member&#8217;s discovery of new groups for themselves. In our
+usability tests of the site, we constantly see people new to Meetup
+click on a group from the search results page, and eye the group&#8217;s
+activity feed to get a little bit more insight into who is actually a
+member of the group.</p>
+
+<p>But, I don&#8217;t want to dwell on how great our activity feeds
+are. Instead, I&#8217;d like to take a little look into how they work.</p>
+
+<p>For starters, our feeds are built on top of <a href="http://hbase.apache.org">HBase</a>.  Why HBase and not <a href="http://couchdb.apache.org/">CouchDB</a>,
+<a href="http://www.basho.com/products_riak_overview.php">Riak</a>, <a href="http://www.mongodb.org">MongoDB</a>, <a href="http://cassandra.apache.org/">Cassandra</a>, 
+<em>&lt;some other shiny thing that&#8217;s &#8220;all the rage&#8221;&gt;</em>? 
+Aside from being a scalable, fault tolerant system with
+lots of users (and growing) and hordes of contributors (also growing),
+in the Spring of 2009, when the NoSQL rebellion was first recruiting
+new members, the choices for stable, viable options were slim.<sup><a id="return-slimoptions" href="#note-slimoptions">[1]</a></sup></p>
+
+<p>Interaction with feeds is done with a slightly modified version of <a href="https://github.com/ghelmling/meetup.beeno">beeno</a>, which
+provides an interface to HBase that looks somewhat close to our custom
+ORM for MySQL.</p>
+
+<p>Layered above beeno is a set of classes that provide common
+abstractions&mdash;<em>pull out all items for member A</em>,
+<em>associate this item to all members in group B</em> basic
+object oriented design, as well as a set of classes for creating
+asynchronous tasks, which we use mostly for large write operations.</p>
+
+<p>Up until a few months ago, all of these asynchronous write tasks
+happened on the application server that the task was initiated
+from. That meant that if a member posted a comment to a group such as
+the <a href="http://www.meetup.com/ny-tech/">NY Tech Meetup</a>, the
+application server would temporarily take a hit in performance while
+that operation was carried out.  Now maybe I&#8217;m playing up the
+performance &#8220;hit&#8221; a bit, but for a group like the, NY Tech Meetup with
+close to 20,000 members, that results in an explosion of writes that
+need to be carried out in HBase, as well as a few potentially large
+queries in order to figure out exactly what to write to HBase to begin
+with.</p>
+
+<p>There was another issue though. If HBase was unable to perform an
+operation due to a region server failure or some other issue, our only
+course of action was to discard the operation instead of trying it
+again, or let the application server&#8217;s job queue<sup><a id="return-executors" href="#note-executors">[2]</a></sup> fill to the point of memory
+exhaustion. Neither of these options is better than the
+other&mdash;they&#8217;re both pretty horrible, so we decided to bound the
+queue size and retry&mdash;the &#8220;best&#8221; of both worlds. This isn&#8217;t
+without it&#8217;s issues too of course. Extended downtime results in
+<tt><a href="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/RejectedExecutionException.html">RejectedExecutionException</a></tt>&#8217;s and lost
+writes. <em>*sigh*</em></p>
+
+<p>Enter enterprise messaging.</p>
+
+<p>One solution to the issues outlined above which has the potential to
+minimize data loss is to queue all write operations to a shared
+location and have a set of worker tasks perform the operations.</p>
+
+<p>Last October, we enlisted <a href="http://www.rabbitmq.com">Rabbit
+MQ</a> for this task.</p>
+
+<p>If you make all the entities durable (queues, exchanges, bindings),
+have enough memory and disk space, implement proper failover in the
+broker and networking infrastructure, and ban wire cutters from your
+data center, it&#8217;s a pretty good bet that actual fires, and earthquakes
+are the only things that will stop the write operations from getting
+off the application server and into the bus.<sup><a id="return-asbestos" href="#note-asbestos">[3]</a></sup></p>
+
+<p>But, just to be sure, and in case failover takes longer than
+&#8220;instantly,&#8221; we queue up writes from the application servers to the
+Rabbit MQ broker.<sup><a id="return-disthard" href="#note-disthard">[4]</a></sup></p>
+
+<p>The new issue then becomes what do we send on the bus? The implication
+of using an <tt><a href="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/Executor.html">Executor</a></tt> is that we have <tt><a href="http://download.oracle.com/javase/6/docs/api/java/lang/Runnable.html">Runnable</a></tt>&#8217;s
+already, so obviously that&#8217;d make the most sense; which,
+unfortunately, is not possible, because <tt>Runnable</tt>
+instances are not serializable.</p>
+
+<p>Enter the serializable closure problem.</p>
+
+<p>As one might suspect, the reason that a <tt>Runnable</tt> isn&#8217;t
+serializable is because it is a hard problem. The same problem exists
+in the functional programming world where closures are a prevalent
+abstraction. Why both of these problems are hard is directly
+related. The core issue is that both abstractions are meant to
+represent <em>computation</em>, not data. Computation has a
+representation in a machine (virtual or otherwise), but we aren&#8217;t normally privy
+to it.</p>
+
+<p>One solution, however, comes directly from researchers figuring out
+how to compile functional languages.</p>
+
+<p>Enter <a href="http://en.wikipedia.org/wiki/Lambda_lifting">closure conversion</a>.</p>
+
+<p>What is a <a href="http://en.wikipedia.org/wiki/Closure_(computer_science)">closure</a>? 
+Well, a closure is really a 2-tuple, <tt>(<em>code</em>, <em>data</em>)</tt>.  We know what the
+<em>code</em> is, but what about the <em>data</em>? The <em>data</em>
+
+is a representation of bindings to all the free variables in the
+<em>code</em>.</p>
+
+<p>For example, <ttmake_counter(x)</tt> creates a new closure:</p>
+
+<pre><code>function make_counter(x) { 
+  return function(incby) { 
+    x += incby;
+    return x; 
+  } 
+}
+</code></pre>
+
+<p>(Here, <tt>x</tt> is a <em><a href="http://en.wikipedia.org/wiki/Free_variable">free variable</a></em> with respect to the
+inner function because the inner function did not introduce it. However,
+
+<tt>incby</tt> is <em>bound</em> with respect to the inner
+function, since it was a parameter of the function)</p>
+
+Closure conversion might, for instance, translate the above function
+to be this instead:
+
+<pre><code>function make_counter_closure_1(closure, incby) {
+  closure.bindings[0] += incby; 
+  return closure.bindings[0]; 
+}
+function make_counter(x) { 
+  return new Closure("make_counter_closure_1", [x]);
+}
+</code></pre>
+
+<p>And any time a value returned by <tt>make_counter</tt> is called,
+the appropriate transformation occurs to make that happen.</p>
+
+<p>Could we serialize the returned value of <tt>make_counter</tt>?
+Absolutely!  We just need a way to refer to the function
+&#8220;make_counter_closure_1&#8221; by name (or address)&mdash;easy in a dynamic language,
+solvable in a compiled language too!<sup><a id="return-cloudskell" href="#note-cloudskell">[5]</a></sup></p>
+
+<p>This translates quite nicely to Java (and our situation), with a few
+tweaks as well:</p>
+
+<pre><code>public class DelayedJob implements Serializable { 
+  // i.e. "com.meetup.feeds.commands.PostItemCommand"
+  private String _command; 
+  // the serialized data the PostItemCommand required to run
+  private Context _context; 
+  public DelayedJob(String className, Context context) { 
+    _command = className; 
+    _context = context; 
+  }
+
+  /* here's the "magic" method, <em>with error handling removed for
+     brevity's sake</em> */
+  public Command bind() throws Exception { 
+    Class c = Class.forName(_command);
+    Command instance = (Command)
+    c.newInstance(); 
+    instance.setContext(_context); 
+    return instance; 
+  } 
+}
+
+</code></pre>
+
+<p>And an example command:</p>
+
+<pre><code>public class PrintCommand extends Command { 
+  public PrintCommand() { super(); } 
+  public void run() { 
+    Context ctx = getContext(); 
+    String message = ctx.getString("message");
+    System.out.println("The Message Is: '" + message + "'"); 
+  } 
+}
+</code></pre>
+
+<p>Where <tt>Command</tt> is:</p>
+
+<pre><code>public abstract class Command extends Runnable {
+  private Context _context = null;
+  public Command() {}
+  public void setContext(Context c) {
+    _context = c;
+  }
+  public Context getContext() {
+    return _context;
+  }
+  abstract void run();
+}
+</code></pre>
+
+<p>It might be obvious from the code above, but this won&#8217;t work
+with anonymous <tt>Command</tt> instances, because we&#8217;re serializing
+a fully qualified class name as part of the <tt>DelayedJob</tt>.
+
+</p><p>And how we use it:</p>
+
+<pre><code>public class FeedClient {
+  public static void print(String message) { 
+    Context c = new Context();
+    c.set("message", message);
+    AsyncFeedService().get.asyncQueueJob( 
+      new DelayedJob(PrintCommand.class.getName(), c); 
+    } 
+}
+</code></pre>
+
+<p>As can be imagined, the process that executes these jobs deserializes
+the <tt>DelayedJob</tt> that was sent, calls <tt>bind()</tt>,
+and submits it to an <tt>Executor</tt> to be run.</p>
+
+<p>The one pseudo issue with this solution is that code changes can 
+require a redeploy and restart of the job executing machines. This seems
+like a reasonable tradeoff.</p>
+
+<p>How does this pan out in practice? It works rather well. We&#8217;ve kept
+the ability to execute jobs the &#8220;old way&#8221; as well, and switch back to that
+for short periods of time in some maintenance situations, but this runs and
+stays up without issues. It also has worked well enough that we&#8217;re going to
+try using it for replicating writes across data centers, until HBase&#8217;s 
+<a href="https://issues.apache.org/jira/browse/HBASE-1295">multi data center replication</a> aware capabilities mature a bit.</p>
+
+<ol class="footnotes"><li id="note-slimoptions">We love shiny stuff as much as the next guy, but we 
+      hate downtime, and hate putting out fires. <a href="#return-slimoptions">&crarr;</a></li>
+
+   <li id="note-executors">We&#8217;re using Java&#8217;s <a href="http://download.oracle.com/javase/6/docs/api/java/util/concurrent/Executor.html">Executor</a> framework. <a href="#return-executors">&crarr;</a></li>
+   <li id="note-asbestos">&#8230; and since our data center is on the east coast and the data center is made out of asbestos (this paragraph and footnote are me <em>trying</em> to be funny)&#8230; <a href="#return-asbestos">&crarr;</a></li>
+
+   <li id="note-disthard">Crap! Distributed systems are hard! <a href="#return-disthard">&crarr;</a></li>
+   <li id="note-cloudskell">In fact, the reason I&#8217;m writing this post is that I just read <a href="http://research.microsoft.com/en-us/um/people/simonpj/papers/parallel/remote.pdf">this paper</a> yesterday, in which almost the exact same thing is done in Haskell! <a href="#return-cloudskell">&crarr;</a></li>
+</ol>
+

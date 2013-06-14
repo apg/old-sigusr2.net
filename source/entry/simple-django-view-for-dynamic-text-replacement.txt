@@ -1,0 +1,42 @@
+title: Simple Django View For Dynamic Text Replacement
+date: 2006-06-30
+---
+        <p>I just discovered <a href="http://artypapers.com/csshelppile/pcdtr/">this</a> and though I like the idea, I don't use PHP. However, the same thing could be done  with Django, and the Python Imaging Library. </p>
+<p>Please note that, this is tested, but in no way optimal, and will remain that way until I get time to do it right, or someone else does it right, or already has done it right.... </p>
+<p>First things first:</p>
+<p>Define some aliases for fonts in settings.py</p>
+<pre><code>DYNAMIC_FONT_ALIASES = {
+   'a': '/path/to/some/truetypefont.ttf',
+}
+</code></pre>
+<p>Then, we define a url in urls.py</p>
+<pre><code># other views here
+(r'^(?P&lt;fontalias&gt;.*)/$', 'testtest.many.views.view_header'),
+</code></pre>
+<p>Then, we create the view... in this case view_header. This is the part that needs fixing.</p>
+<pre><code>from django.http import HttpResponse
+from testtest import settings
+import Image, ImageFont, ImageDraw
+def view_header(request, fontalias):
+    try: 
+        fontfile = settings.DYNAMIC_FONT_ALIASES[fontalias]
+    except:
+        return HttpResponse("not supported")
+
+    if request.GET.has_key('text'):
+        header = request.GET['text']
+    else: 
+        header = 'Hello world'
+
+    imf = ImageFont.truetype(fontfile, 20)
+    size = imf.getsize(header)
+    im = Image.new("RGB", size)
+    draw = ImageDraw.Draw(im)
+    draw.text((0, 0), header, font=imf)
+
+    # anyone know a better way than saving first? I guess we get built in cache this way.... 
+    im.save("/tmp/aaaa", "PNG")
+    a = open("/tmp/aaaa", "rb")
+    return HttpResponse(content=a.read(), mimetype="image/png")
+</code></pre>
+<p>And there you have it. Start up your application and point yourself to <a href="http://localhost:8000/a/?text=This%20is%20a%20dynamic%20django%20header">here</a>, and marvel at the glory that is, Django dynamic headers... or what could be used as dynamic headers with some css.</p>
