@@ -1,6 +1,7 @@
 title: The Best Tool for the Job
 date: 2006-06-29
 ---
+<p><em>This guest post was written by Gregory Barendt and originally appeared on 23excuses.com.</em></p>
         <p>We pretty much all agree that the best tool for a particular job is
 probably the one that should be used to complete said job. The FOSS-or-Death!
 crowd will tell you that openness trumps all else because one day your great little

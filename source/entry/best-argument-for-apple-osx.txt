@@ -1,6 +1,7 @@
 title: The Best Argument for OS X
 date: 2006-06-27
 ---
+<p><em>This guest post was written by Gregory Barendt and originally appeared on 23excuses.com.</em></p>
         <p>With all this talk of malware immunity and the <a href="http://www.apple.com/ilife/">iLife</a> apps, everybody seems to have left out the one feature of OS X that has prevented me from switching to Linux for development. No, it isn't because I am locked into iTunes - though I am.</p>
 <p>I'm talking about the most addictive, most over-looked and under-rated feature of OS X - the reason I feel claustrophobic when I'm stuck writing .NET on a Windows box.</p>
 <p>I'm talking about [Expose] (http://www.apple.com/macosx/features/expose/). </p>
