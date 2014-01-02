@@ -1,0 +1,59 @@
+title: When
+date: 2013-12-12
+tags: c, unix, utilities
+published: True
+---
+<p><span class="preamble">
+The other day I released a utility which I called <code class="inline"><a href="https://github.com/apgwoz/when">when</a></code>. The idea of
+<code class="inline">when</code> is to <code class="inline"><a href="http://linux.die.net/man/1/watch">watch(1)</a></code> a command only until it succeeds, and perform
+some action when it does. There was a lot of confusion around this.
+People suggested that I missed the boat since the shell can do this
+natively with a simple loop. However, what people failed to realize is
+that <code class="inline">when</code> solved a different problem as well.</span></p>
+
+<p>The other problem that <code class="inline">when</code> set out to solve is that notification that a long running process <em>succeeded</em> isn't always enough. Perhaps I
+wanted to see if the long running process <em>started</em> successfully (this
+assumes that your long running process can fail quickly, though that's
+what the <code class="inline">-n</code> option is for). More on that in a second.</p>
+
+<p>In some ways it's rather silly to have <code class="inline">when</code> launch the second
+process when it's something the shell can easily do&mdash;I agree<sup><a id="return-complaint" href="#note-complaint">[1]</a></sup>. So, the
+default mode (<code class="inline">-z</code> mode) might be better described as "retry until 0".
+Then, basic usage would look like:</p>
+
+<pre><code>when "cat /file/that/will/exist" && grep "ERROR" /file/that/will/exist</code></pre>
+
+<p>Of course, the above example is silly since you could do grep instead of cat to begin with, but I digress.
+However, if I change <code class="inline">when</code> to adopt those semantics, then an invocation need not quote the commands because the shell will parse it as:</p>
+
+<pre><code>when cat /file/that/will/exist</code></pre>
+
+<p>and</p>
+
+<pre><code>&& grep "ERROR" /file/that/will/exist</code></pre>
+
+<p>In a bourne compatible shell, <code class="inline">when</code> never sees anything past the <code class="inline">&&</code>, which, with our argument parsing, means that we can call <code class="inline">execvp</code> directly on
+<code class="inline">argv</code> after incrementing past the options, making the code simpler, and eliminate the subshell invocation all together! <sup><a id="return-subshell" href="#note-subshell">[2]</a></sup></p>
+
+<p>What does this do to <code class="inline">-t</code> mode though, the reason <code class="inline">when</code> exists to begin with? Well, that's a bit trickier. In
+essence it'd make sense to be able to share the same argument passing
+semantics&mdash;"unquoted" when possible, but the shell can't help us
+complete what we're looking for. So, perhaps we do:</p>
+
+<pre><code>when ssh <em>temporarily unreachable host</em> <strong>-alarm</strong> xmessage 'connected' && xmessage 'closed'</code></pre>
+
+<p>This forces us to do more work to parse arguments, but allows us to
+work in non-quoted mode, and makes it a bit more clear what's
+happening. Plus, we share the same "finished" semantics as in the
+default mode.</p>
+
+<p>The usage of <code class="inline">-alarm</code> sort of implies what's happening. Run <code class="inline">xmessage 'connected'</code> after some event occurs. A user would just have to understand that the alarm goes off after <code class="inline">N</code> seconds of the command not being retried.</p>
+
+<p>The only question then becomes whether or not <code class="inline">when</code> is the proper name for this.</p>
+
+<p>(thanks to the <a href="http://suckless.org">suckless-dev</a> list for the discussion.)</p>
+
+<ol class="footnotes">
+    <li id="note-complaint">By far the biggest complaint!</li>
+    <li id="note-subshell">There's a tradeoff though. We still want to be able to support complex pipelines to watch, so we a way to determine whether or not a subshell is needed. Simplicity of always using a subshell might win out.</li>
+</ol>
