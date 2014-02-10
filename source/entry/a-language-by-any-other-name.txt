@@ -1,0 +1,15 @@
+Title: A Language by Any Other Name
+Date: 2014-02-10
+Tags: thought, programming
+Publish: True
+---
+<p><span class="preamble">Some programs are configurable, and they expose a so called "configuration" language. These tend to range from key value pairs to full-fledged, <a href="https://en.wikipedia.org/wiki/Turing_completeness">Turing-complete</a>, programming languages.</span></p>
+
+<p>A "programming" language is also a "configuration" language, but only in the abstract. A programming language (somehow, by compiler, or virtual machine, or direct execution of an AST) produces, let's call it an image<sup><a id="return-image" href="#note-image">[1]</a></sup>, in memory which evolves the CPU and memory <em>over time</em> while executing.</p>
+
+<p>But, then there's an interesting realization. A "configuration" language doesn't configure the CPU and its attached memory in the typical sense. It configures the image. Essentially, a "configuration" language <em>writes</em> specialized programs on the fly, just like a JIT, or a macro-processor in Lisp.</p>
+
+<ol class="footnotes">
+    <li id="note-image">An image is just an executable and associated data residing in memory.</li>
+</ol>
+
